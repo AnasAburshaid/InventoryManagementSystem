@@ -11,6 +11,7 @@ using Microsoft.OpenApi.Models;
 using InventoryManagementSystem.DataAccess.Persistence;
 using InventoryManagementSystem.Business.Categories.Services;
 using InventoryManagementSystem.Business.Brands.Services;
+using InventoryManagementSystem.Business.Products.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,7 +84,8 @@ builder.Services.AddScoped<JwtTokenGenerator>();
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<BrandService>();
-
+builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<SkuGenerator>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
