@@ -1,17 +1,18 @@
-using InventoryManagementSystem.DataAccess.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using InventoryManagementSystem.DataAccess.Identity.Seeding;
 using InventoryManagementSystem.Business.Authentication;
 using InventoryManagementSystem.Business.Authentication.Services;
-using System.Text;
+using InventoryManagementSystem.Business.Brands.Services;
+using InventoryManagementSystem.Business.Categories.Services;
+using InventoryManagementSystem.Business.Products.Services;
+using InventoryManagementSystem.Business.Warehouses.Services;
+using InventoryManagementSystem.DataAccess.Identity;
+using InventoryManagementSystem.DataAccess.Identity.Seeding;
+using InventoryManagementSystem.DataAccess.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using InventoryManagementSystem.DataAccess.Persistence;
-using InventoryManagementSystem.Business.Categories.Services;
-using InventoryManagementSystem.Business.Brands.Services;
-using InventoryManagementSystem.Business.Products.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,6 +87,9 @@ builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<BrandService>();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<SkuGenerator>();
+builder.Services.AddScoped<WarehouseService>();
+builder.Services.AddScoped<WarehouseCodeGenerator>();
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
