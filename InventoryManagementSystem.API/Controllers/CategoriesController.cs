@@ -49,7 +49,7 @@ public class CategoriesController : ControllerBase
         return Ok(category);
     }
 
-    [Authorize(Roles = "Admin,WarehouseManager")]
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [ProducesResponseType(typeof(CategoryResponse),StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -86,7 +86,7 @@ public class CategoriesController : ControllerBase
             result.Data);
     }
 
-    [Authorize(Roles = "Admin,WarehouseManager")]
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:guid}")]
     [ProducesResponseType( typeof(CategoryResponse),StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -129,7 +129,7 @@ public class CategoriesController : ControllerBase
         return Ok(result.Data);
     }
 
-    [Authorize(Roles = "Admin,WarehouseManager")]
+    [Authorize(Roles = "Admin")]
     [HttpPatch("{id:guid}/status")]
     [ProducesResponseType(
     typeof(CategoryResponse),

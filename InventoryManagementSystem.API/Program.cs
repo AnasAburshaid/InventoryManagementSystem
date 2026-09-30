@@ -3,6 +3,7 @@ using InventoryManagementSystem.Business.Authentication.Services;
 using InventoryManagementSystem.Business.Brands.Services;
 using InventoryManagementSystem.Business.Categories.Services;
 using InventoryManagementSystem.Business.Products.Services;
+using InventoryManagementSystem.Business.WarehouseAssignments.Services;
 using InventoryManagementSystem.Business.Warehouses.Services;
 using InventoryManagementSystem.DataAccess.Identity;
 using InventoryManagementSystem.DataAccess.Identity.Seeding;
@@ -89,9 +90,15 @@ builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<SkuGenerator>();
 builder.Services.AddScoped<WarehouseService>();
 builder.Services.AddScoped<WarehouseCodeGenerator>();
-
+builder.Services.AddScoped<IWarehouseAssignmentService, WarehouseAssignmentService>();
 
 builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // This makes Swagger and Postman show "Manager" instead of 2
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>

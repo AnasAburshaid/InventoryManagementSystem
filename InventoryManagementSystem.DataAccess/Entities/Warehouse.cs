@@ -12,7 +12,7 @@ public partial class Warehouse
 {
     [Key]
     public Guid Id { get; set; }
-
+     
     [StringLength(100)]
     public string Name { get; set; } = null!;
 
@@ -26,4 +26,8 @@ public partial class Warehouse
     public DateTime CreatedAt { get; set; }
 
     public bool IsActive { get; set; }
+
+    [InverseProperty("Warehouse")]
+    public virtual ICollection<WarehouseAssignment> WarehouseAssignments { get; set; }
+    = new List<WarehouseAssignment>();
 }

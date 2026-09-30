@@ -51,7 +51,7 @@ public class ProductsController : ControllerBase
         return Ok(product);
     }
 
-    [Authorize(Roles = "Admin,WarehouseManager")]
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [ProducesResponseType(
         typeof(ProductResponse),
@@ -128,7 +128,7 @@ public class ProductsController : ControllerBase
             result.Data);
     }
 
-    [Authorize(Roles = "Admin,WarehouseManager")]
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:guid}")]
     [ProducesResponseType(
     typeof(ProductResponse),
@@ -205,7 +205,7 @@ public class ProductsController : ControllerBase
         return Ok(result.Data);
     }
 
-    [Authorize(Roles = "Admin,WarehouseManager")]
+    [Authorize(Roles = "Admin")]
     [HttpPatch("{id:guid}/status")]
     [ProducesResponseType(
     typeof(ProductResponse),

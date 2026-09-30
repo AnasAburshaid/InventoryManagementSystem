@@ -51,7 +51,7 @@ public class BrandsController : ControllerBase
         return Ok(brand);
     }
 
-    [Authorize(Roles = "Admin,WarehouseManager")]
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [ProducesResponseType(
         typeof(BrandResponse),
@@ -90,7 +90,7 @@ public class BrandsController : ControllerBase
             result.Data);
     }
 
-    [Authorize(Roles = "Admin,WarehouseManager")]
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:guid}")]
     [ProducesResponseType(
         typeof(BrandResponse),
@@ -136,7 +136,7 @@ public class BrandsController : ControllerBase
         return Ok(result.Data);
     }
 
-    [Authorize(Roles = "Admin,WarehouseManager")]
+    [Authorize(Roles = "Admin")]
     [HttpPatch("{id:guid}/status")]
     [ProducesResponseType(
         typeof(BrandResponse),

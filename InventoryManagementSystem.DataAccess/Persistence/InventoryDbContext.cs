@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using InventoryManagementSystem.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
-
+using InventoryManagementSystem.DataAccess.Enums;
 namespace InventoryManagementSystem.DataAccess.Persistence;
 
 public partial class InventoryDbContext : DbContext
@@ -27,6 +27,7 @@ public partial class InventoryDbContext : DbContext
     public virtual DbSet<SupplierProduct> SupplierProducts { get; set; }
 
     public virtual DbSet<Warehouse> Warehouses { get; set; }
+    public virtual DbSet<WarehouseAssignment> WarehouseAssignments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -98,6 +99,21 @@ public partial class InventoryDbContext : DbContext
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<WarehouseAssignment>(entity =>
+        {
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+
+            entity.Property(e => e.AssignedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Role).HasDefaultValue(WarehouseAssignmentRole.Employee);
+
+            entity.HasOne(d => d.Warehouse)
+                .WithMany(p => p.WarehouseAssignments)
+                .HasForeignKey(d => d.WarehouseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_WarehouseAssignment_Warehouse");
         });
 
         OnModelCreatingPartial(modelBuilder);
