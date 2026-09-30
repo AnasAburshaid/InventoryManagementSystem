@@ -2,6 +2,7 @@ using InventoryManagementSystem.Business.Authentication;
 using InventoryManagementSystem.Business.Authentication.Services;
 using InventoryManagementSystem.Business.Brands.Services;
 using InventoryManagementSystem.Business.Categories.Services;
+using InventoryManagementSystem.Business.Customers.Services;
 using InventoryManagementSystem.Business.Products.Services;
 using InventoryManagementSystem.Business.WarehouseAssignments.Services;
 using InventoryManagementSystem.Business.Warehouses.Services;
@@ -91,6 +92,7 @@ builder.Services.AddScoped<SkuGenerator>();
 builder.Services.AddScoped<WarehouseService>();
 builder.Services.AddScoped<WarehouseCodeGenerator>();
 builder.Services.AddScoped<IWarehouseAssignmentService, WarehouseAssignmentService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 builder.Services.AddControllers();
 builder.Services.AddControllers()
