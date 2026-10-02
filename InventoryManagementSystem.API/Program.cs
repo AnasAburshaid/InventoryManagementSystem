@@ -4,6 +4,7 @@ using InventoryManagementSystem.Business.Brands.Services;
 using InventoryManagementSystem.Business.Categories.Services;
 using InventoryManagementSystem.Business.Customers.Services;
 using InventoryManagementSystem.Business.Products.Services;
+using InventoryManagementSystem.Business.Suppliers.Services;
 using InventoryManagementSystem.Business.WarehouseAssignments.Services;
 using InventoryManagementSystem.Business.Warehouses.Services;
 using InventoryManagementSystem.DataAccess.Identity;
@@ -93,6 +94,7 @@ builder.Services.AddScoped<WarehouseService>();
 builder.Services.AddScoped<WarehouseCodeGenerator>();
 builder.Services.AddScoped<IWarehouseAssignmentService, WarehouseAssignmentService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
 
 builder.Services.AddControllers();
 builder.Services.AddControllers()
