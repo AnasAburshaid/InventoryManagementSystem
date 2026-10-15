@@ -29,6 +29,8 @@ public partial class InventoryDbContext : DbContext
     public virtual DbSet<Warehouse> Warehouses { get; set; }
     public virtual DbSet<WarehouseAssignment> WarehouseAssignments { get; set; }
 
+    public virtual DbSet<StockMovement> StockMovements { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AdjustmentReason>(entity =>
@@ -114,6 +116,41 @@ public partial class InventoryDbContext : DbContext
                 .HasForeignKey(d => d.WarehouseId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_WarehouseAssignment_Warehouse");
+        });
+
+        modelBuilder.Entity<StockMovement>(entity =>
+        {
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+
+            // Prevent deleting products or warehouses if they have movement history
+            entity.HasOne(d => d.Product)
+                .WithMany()
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_StockMovement_Product");
+
+            entity.HasOne(d => d.Warehouse)
+                .WithMany()
+                .HasForeignKey(d => d.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_StockMovement_Warehouse");
+
+            entity.HasOne(d => d.AdjustmentReason)
+                .WithMany()
+                .HasForeignKey(d => d.AdjustmentReasonId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_StockMovement_AdjustmentReason");
+
+            entity.HasOne(d => d.LinkedMovement)
+                .WithMany()
+                .HasForeignKey(d => d.LinkedMovementId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_StockMovement_LinkedMovement");
+
+            entity.Property(e => e.Type)
+                .HasConversion<string>()
+                .HasColumnName("MovementType");
         });
 
         OnModelCreatingPartial(modelBuilder);

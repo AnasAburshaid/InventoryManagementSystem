@@ -2,4 +2,5 @@
   <Project Path="InventoryManagementSystem.API/InventoryManagementSystem.API.csproj" />
   <Project Path="InventoryManagementSystem.Business/InventoryManagementSystem.Business.csproj" />
   <Project Path="InventoryManagementSystem.DataAccess/InventoryManagementSystem.DataAccess.csproj" />
+  <Project Path="InventoryManagementSystem/InventoryManagementSystem.IntegrationTests.csproj" Id="5af060cb-f342-4f5a-96a2-9b81710a7f91" />
 </Solution>

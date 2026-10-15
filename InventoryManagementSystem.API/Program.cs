@@ -1,16 +1,20 @@
+using InventoryManagementSystem.API.Authorization;
 using InventoryManagementSystem.Business.Authentication;
 using InventoryManagementSystem.Business.Authentication.Services;
 using InventoryManagementSystem.Business.Brands.Services;
 using InventoryManagementSystem.Business.Categories.Services;
 using InventoryManagementSystem.Business.Customers.Services;
 using InventoryManagementSystem.Business.Products.Services;
+using InventoryManagementSystem.Business.StockMovements.Services;
 using InventoryManagementSystem.Business.Suppliers.Services;
 using InventoryManagementSystem.Business.WarehouseAssignments.Services;
 using InventoryManagementSystem.Business.Warehouses.Services;
+using InventoryManagementSystem.DataAccess.Enums;
 using InventoryManagementSystem.DataAccess.Identity;
 using InventoryManagementSystem.DataAccess.Identity.Seeding;
 using InventoryManagementSystem.DataAccess.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -95,6 +99,9 @@ builder.Services.AddScoped<WarehouseCodeGenerator>();
 builder.Services.AddScoped<IWarehouseAssignmentService, WarehouseAssignmentService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<IStockMovementService, StockMovementService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuthorizationHandler, WarehouseRoleHandler>();
 
 builder.Services.AddControllers();
 builder.Services.AddControllers()
@@ -132,6 +139,17 @@ builder.Services.AddSwaggerGen(options =>
                 Array.Empty<string>()
             }
         });
+});
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireWarehouseManager", policy =>
+        policy.Requirements.Add(new WarehouseRoleRequirement(WarehouseAssignmentRole.Manager)));
+
+    options.AddPolicy("RequireWarehouseSupervisor", policy =>
+        policy.Requirements.Add(new WarehouseRoleRequirement(WarehouseAssignmentRole.Supervisor)));
+
+    options.AddPolicy("RequireWarehouseEmployee", policy =>
+        policy.Requirements.Add(new WarehouseRoleRequirement(WarehouseAssignmentRole.Employee)));
 });
 
 
@@ -179,3 +197,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.Run();
+public partial class Program { }

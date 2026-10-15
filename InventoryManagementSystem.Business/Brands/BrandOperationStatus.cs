@@ -1,8 +1,10 @@
-﻿namespace InventoryManagementSystem.Business.Brands;
+﻿namespace InventoryManagementSystem.Business.Customers;
 
-public enum BrandOperationStatus
+public enum CustomerOperationStatus
 {
     Success,
     NotFound,
-    DuplicateName
+    DuplicateEmail,
+    InvalidPhone, 
+    InvalidEmail  
 }
