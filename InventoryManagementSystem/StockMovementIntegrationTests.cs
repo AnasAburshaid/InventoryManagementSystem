@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using InventoryManagementSystem.Business.StockMovements.DTOs;
@@ -32,13 +32,22 @@ public class StockMovementIntegrationTests : IClassFixture<CustomWebApplicationF
         var productId = Guid.NewGuid();
         var warehouseId = Guid.NewGuid();
 
+        var unitOfMeasureId = Guid.NewGuid();
+        db.UnitOfMeasures.Add(new UnitOfMeasure
+        {
+            Id = unitOfMeasureId,
+            Name = "Piece",
+            Code = "pcs",
+            IsActive = true
+        });
+
         // 1. Create Product (Added missing required fields)
         db.Products.Add(new Product
         {
             Id = productId,
             Name = "Test iPhone",
             Sku = "TEST-SKU-001",
-            UnitOfMeasure = "Piece",
+            UnitOfMeasureId = unitOfMeasureId,
             IsActive = true
         });
 

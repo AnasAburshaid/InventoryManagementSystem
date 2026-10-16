@@ -1,15 +1,13 @@
 import axios from 'axios';
 
-// Create a customized Axios instance
 const api = axios.create({
-    // We will update this port to match your C# API port in the next step
-    baseURL: 'https://localhost:7000/api', 
+    // Updated to point to your exact C# port!
+    baseURL: 'http://localhost:5068/api', 
     headers: {
         'Content-Type': 'application/json',
     }
 });
 
-// Add a request interceptor to attach the JWT token automatically
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('jwt_token');

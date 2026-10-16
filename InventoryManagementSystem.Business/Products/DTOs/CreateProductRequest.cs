@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace InventoryManagementSystem.Business.Products.DTOs;
 
@@ -9,7 +9,7 @@ public class CreateProductRequest
     public string Name { get; set; } = null!;
 
     [Required]
-    public string UnitOfMeasure { get; set; } = null!;
+    public Guid UnitOfMeasureId { get; set; }
 
     [Range(0, int.MaxValue)]
     public int ReorderThreshold { get; set; }

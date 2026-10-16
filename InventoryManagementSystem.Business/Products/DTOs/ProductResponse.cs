@@ -1,4 +1,4 @@
-﻿namespace InventoryManagementSystem.Business.Products.DTOs;
+namespace InventoryManagementSystem.Business.Products.DTOs;
 
 public class ProductResponse
 {
@@ -7,6 +7,12 @@ public class ProductResponse
     public string SKU { get; set; } = null!;
 
     public string Name { get; set; } = null!;
+
+    public Guid UnitOfMeasureId { get; set; }
+
+    public string UnitOfMeasureName { get; set; } = null!;
+
+    public string UnitOfMeasureCode { get; set; } = null!;
 
     public string UnitOfMeasure { get; set; } = null!;
 

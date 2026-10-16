@@ -1,4 +1,4 @@
-﻿namespace InventoryManagementSystem.Business.Products;
+namespace InventoryManagementSystem.Business.Products;
 
 public enum ProductOperationStatus
 {
@@ -10,5 +10,7 @@ public enum ProductOperationStatus
     CategoryInactive,
     BrandNotFound,
     BrandInactive,
-    InvalidUnitOfMeasure
+    InvalidUnitOfMeasure,
+    UnitOfMeasureNotFound,
+    UnitOfMeasureInactive
 }

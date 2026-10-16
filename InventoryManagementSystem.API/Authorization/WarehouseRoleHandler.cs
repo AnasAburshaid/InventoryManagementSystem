@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using InventoryManagementSystem.DataAccess.Enums;
 using InventoryManagementSystem.DataAccess.Persistence;
 using Microsoft.AspNetCore.Authorization;
@@ -19,6 +19,15 @@ public class WarehouseRoleHandler : AuthorizationHandler<WarehouseRoleRequiremen
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, WarehouseRoleRequirement requirement)
     {
+        // 0. System Administrators have global access to all warehouses
+        if (context.User.IsInRole("Admin") ||
+            context.User.HasClaim(ClaimTypes.Role, "Admin") ||
+            context.User.HasClaim("role", "Admin"))
+        {
+            context.Succeed(requirement);
+            return;
+        }
+
         // 1. Get the authenticated User's ID from the JWT
         string? userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
                          context.User.FindFirst("sub")?.Value;

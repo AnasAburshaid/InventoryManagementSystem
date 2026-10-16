@@ -33,3 +33,8 @@ Thumbs.db
 # Rider / JetBrains
 .idea/
 *.sln.iml
+
+# Node / Frontend
+node_modules/
+dist/
+.vite/

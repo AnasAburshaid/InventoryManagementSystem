@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -23,9 +23,11 @@ public partial class Product
     [StringLength(200)]
     public string Name { get; set; } = null!;
 
-    [StringLength(20)]
-    [Unicode(false)]
-    public string UnitOfMeasure { get; set; } = null!;
+    public Guid UnitOfMeasureId { get; set; }
+
+    [ForeignKey("UnitOfMeasureId")]
+    [InverseProperty("Products")]
+    public virtual UnitOfMeasure UnitOfMeasure { get; set; } = null!;
 
     public int ReorderThreshold { get; set; }
 

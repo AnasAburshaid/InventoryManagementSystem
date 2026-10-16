@@ -7,6 +7,7 @@ using InventoryManagementSystem.Business.Customers.Services;
 using InventoryManagementSystem.Business.Products.Services;
 using InventoryManagementSystem.Business.StockMovements.Services;
 using InventoryManagementSystem.Business.Suppliers.Services;
+using InventoryManagementSystem.Business.UnitOfMeasures.Services;
 using InventoryManagementSystem.Business.WarehouseAssignments.Services;
 using InventoryManagementSystem.Business.Warehouses.Services;
 using InventoryManagementSystem.DataAccess.Enums;
@@ -93,6 +94,8 @@ builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<BrandService>();
 builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<IUnitOfMeasureService, UnitOfMeasureService>();
+builder.Services.AddScoped<UnitOfMeasureService>();
 builder.Services.AddScoped<SkuGenerator>();
 builder.Services.AddScoped<WarehouseService>();
 builder.Services.AddScoped<WarehouseCodeGenerator>();
@@ -152,6 +155,16 @@ builder.Services.AddAuthorization(options =>
         policy.Requirements.Add(new WarehouseRoleRequirement(WarehouseAssignmentRole.Employee)));
 });
 
+// Allow our React frontend to communicate with the API
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5174") // Added 5174 just in case Vite switches ports again
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -191,6 +204,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// ---> ADD THIS EXACTLY HERE <---
+app.UseCors("AllowReactFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();

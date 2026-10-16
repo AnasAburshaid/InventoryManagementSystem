@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using InventoryManagementSystem.Business.StockMovements.DTOs;
 using InventoryManagementSystem.DataAccess.Entities;
 using InventoryManagementSystem.DataAccess.Enums;
@@ -59,17 +59,57 @@ public class StockMovementService : IStockMovementService
             }
         }
 
-        // Rule 9: Adjustment Requires Reason
+        // Rule 9: Adjustment Requires Reason or Explanatory Note
         if (request.Type == StockMovementType.AdjustmentIn || request.Type == StockMovementType.AdjustmentOut)
         {
-            if (!request.AdjustmentReasonId.HasValue)
+            if (request.AdjustmentReasonId.HasValue)
             {
-                return new StockMovementOperationResult<StockMovementResponse> { Status = StockMovementOperationStatus.AdjustmentReasonRequired };
+                bool isReasonValid = await _context.AdjustmentReasons.AnyAsync(r => r.Id == request.AdjustmentReasonId && r.IsActive);
+                if (!isReasonValid)
+                {
+                    return new StockMovementOperationResult<StockMovementResponse> { Status = StockMovementOperationStatus.AdjustmentReasonNotFound };
+                }
             }
+            else
+            {
+                // If AdjustmentReasonId was not provided, check if an explanatory note was given
+                if (string.IsNullOrWhiteSpace(request.ReferenceId))
+                {
+                    return new StockMovementOperationResult<StockMovementResponse> { Status = StockMovementOperationStatus.AdjustmentReasonRequired };
+                }
 
-            bool isReasonValid = await _context.AdjustmentReasons.AnyAsync(r => r.Id == request.AdjustmentReasonId && r.IsActive);
-            if (!isReasonValid)
-                return new StockMovementOperationResult<StockMovementResponse> { Status = StockMovementOperationStatus.AdjustmentReasonNotFound };
+                // Automatically link note to best matching reason or default reason
+                string lowerNote = request.ReferenceId.ToLowerInvariant();
+                AdjustmentReason? matchingReason = null;
+
+                if (lowerNote.Contains("damag"))
+                {
+                    matchingReason = await _context.AdjustmentReasons.FirstOrDefaultAsync(r => r.IsActive && r.Name.Contains("Damage"));
+                }
+                else if (lowerNote.Contains("expir") || lowerNote.Contains("spoil"))
+                {
+                    matchingReason = await _context.AdjustmentReasons.FirstOrDefaultAsync(r => r.IsActive && r.Name.Contains("Expire"));
+                }
+                else if (lowerNote.Contains("lost") || lowerNote.Contains("steal") || lowerNote.Contains("stolen") || lowerNote.Contains("shrink"))
+                {
+                    matchingReason = await _context.AdjustmentReasons.FirstOrDefaultAsync(r => r.IsActive && r.Name.Contains("Lost"));
+                }
+                else if (lowerNote.Contains("found") || lowerNote.Contains("surplus"))
+                {
+                    matchingReason = await _context.AdjustmentReasons.FirstOrDefaultAsync(r => r.IsActive && r.Name.Contains("Found"));
+                }
+
+                if (matchingReason == null)
+                {
+                    matchingReason = await _context.AdjustmentReasons.FirstOrDefaultAsync(r => r.IsActive && r.Name.Contains("Other"))
+                                     ?? await _context.AdjustmentReasons.FirstOrDefaultAsync(r => r.IsActive);
+                }
+
+                if (matchingReason != null)
+                {
+                    request.AdjustmentReasonId = matchingReason.Id;
+                }
+            }
         }
 
         // Create the Append-Only record
@@ -80,13 +120,19 @@ public class StockMovementService : IStockMovementService
             Quantity = request.Quantity,
             Type = request.Type,
             AdjustmentReasonId = request.AdjustmentReasonId,
-            ReferenceType = request.ReferenceType,
+            ReferenceType = request.ReferenceType ?? (request.AdjustmentReasonId.HasValue ? "Adjustment" : null),
             ReferenceId = request.ReferenceId,
             CreatedByUserId = userId
         };
 
         _context.StockMovements.Add(movement);
         await _context.SaveChangesAsync();
+
+        string? adjustmentReasonName = null;
+        if (movement.AdjustmentReasonId.HasValue)
+        {
+            adjustmentReasonName = (await _context.AdjustmentReasons.FindAsync(movement.AdjustmentReasonId.Value))?.Name;
+        }
 
         return new StockMovementOperationResult<StockMovementResponse>
         {
@@ -99,6 +145,7 @@ public class StockMovementService : IStockMovementService
                 Quantity = movement.Quantity,
                 Type = movement.Type,
                 AdjustmentReasonId = movement.AdjustmentReasonId,
+                AdjustmentReasonName = adjustmentReasonName,
                 ReferenceType = movement.ReferenceType,
                 ReferenceId = movement.ReferenceId,
                 CreatedByUserId = movement.CreatedByUserId,
@@ -121,6 +168,7 @@ public class StockMovementService : IStockMovementService
                 Quantity = sm.Quantity,
                 Type = sm.Type,
                 AdjustmentReasonId = sm.AdjustmentReasonId,
+                AdjustmentReasonName = sm.AdjustmentReason != null ? sm.AdjustmentReason.Name : null,
                 ReferenceType = sm.ReferenceType,
                 ReferenceId = sm.ReferenceId,
                 CreatedByUserId = sm.CreatedByUserId,

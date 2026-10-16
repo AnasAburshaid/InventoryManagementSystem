@@ -1,4 +1,4 @@
-﻿using InventoryManagementSystem.Business.Products.DTOs;
+using InventoryManagementSystem.Business.Products.DTOs;
 using InventoryManagementSystem.DataAccess.Entities;
 using InventoryManagementSystem.DataAccess.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -7,19 +7,10 @@ namespace InventoryManagementSystem.Business.Products.Services
 {
     public class ProductService
     {
-
         private readonly InventoryDbContext _context;
         private readonly SkuGenerator _skuGenerator;
 
-        private static readonly string[] AllowedUnits =
-        {
-        "Piece",
-        "Box",
-        "Kg",
-        "Liter",
-        "Pack"
-        };
-        public ProductService(InventoryDbContext context , SkuGenerator skuGenerator)
+        public ProductService(InventoryDbContext context, SkuGenerator skuGenerator)
         {
             _context = context;
             _skuGenerator = skuGenerator;
@@ -39,14 +30,26 @@ namespace InventoryManagementSystem.Business.Products.Services
             return sku;
         }
 
-        private async Task<bool> IsDuplicateProductAsync(string name, Guid categoryId, Guid? brandId, string unitOfMeasure)
+        private async Task<bool> IsDuplicateProductAsync(
+            string name,
+            Guid categoryId,
+            Guid? brandId,
+            Guid unitOfMeasureId,
+            Guid? excludeProductId = null)
         {
-            return await _context.Products
-                .AnyAsync(product =>
+            var query = _context.Products.AsNoTracking()
+                .Where(product =>
                     product.Name == name &&
                     product.CategoryId == categoryId &&
                     product.BrandId == brandId &&
-                    product.UnitOfMeasure == unitOfMeasure);
+                    product.UnitOfMeasureId == unitOfMeasureId);
+
+            if (excludeProductId.HasValue)
+            {
+                query = query.Where(product => product.Id != excludeProductId.Value);
+            }
+
+            return await query.AnyAsync();
         }
 
         public async Task<IReadOnlyCollection<ProductResponse>> GetAllAsync()
@@ -59,7 +62,10 @@ namespace InventoryManagementSystem.Business.Products.Services
                     Id = product.Id,
                     SKU = product.Sku,
                     Name = product.Name,
-                    UnitOfMeasure = product.UnitOfMeasure,
+                    UnitOfMeasureId = product.UnitOfMeasureId,
+                    UnitOfMeasureName = product.UnitOfMeasure.Name,
+                    UnitOfMeasureCode = product.UnitOfMeasure.Code,
+                    UnitOfMeasure = product.UnitOfMeasure.Name,
                     ReorderThreshold = product.ReorderThreshold,
                     SellingPrice = product.SellingPrice,
 
@@ -76,6 +82,7 @@ namespace InventoryManagementSystem.Business.Products.Services
                 })
                 .ToListAsync();
         }
+
         public async Task<ProductResponse?> GetByIdAsync(Guid id)
         {
             return await _context.Products
@@ -86,7 +93,10 @@ namespace InventoryManagementSystem.Business.Products.Services
                     Id = product.Id,
                     SKU = product.Sku,
                     Name = product.Name,
-                    UnitOfMeasure = product.UnitOfMeasure,
+                    UnitOfMeasureId = product.UnitOfMeasureId,
+                    UnitOfMeasureName = product.UnitOfMeasure.Name,
+                    UnitOfMeasureCode = product.UnitOfMeasure.Code,
+                    UnitOfMeasure = product.UnitOfMeasure.Name,
                     ReorderThreshold = product.ReorderThreshold,
                     SellingPrice = product.SellingPrice,
 
@@ -108,29 +118,30 @@ namespace InventoryManagementSystem.Business.Products.Services
         {
             string sku = await GenerateUniqueSkuAsync();
             string name = request.Name.Trim();
-            string unitOfMeasure = request.UnitOfMeasure.Trim();
 
-            string? validUnit =
-            AllowedUnits.FirstOrDefault(unit =>
-            string.Equals(
-                unit,
-                unitOfMeasure,
-                StringComparison.OrdinalIgnoreCase));
+            UnitOfMeasure? unitOfMeasure = await _context.UnitOfMeasures
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == request.UnitOfMeasureId);
 
-            if (validUnit is null)
+            if (unitOfMeasure is null)
             {
                 return new ProductOperationResult<ProductResponse>
                 {
-                    Status = ProductOperationStatus.InvalidUnitOfMeasure
+                    Status = ProductOperationStatus.UnitOfMeasureNotFound
                 };
             }
 
+            if (!unitOfMeasure.IsActive)
+            {
+                return new ProductOperationResult<ProductResponse>
+                {
+                    Status = ProductOperationStatus.UnitOfMeasureInactive
+                };
+            }
 
-            Category? category =
-                await _context.Categories
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(
-                        category => category.Id == request.CategoryId);
+            Category? category = await _context.Categories
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == request.CategoryId);
 
             if (category is null)
             {
@@ -149,13 +160,11 @@ namespace InventoryManagementSystem.Business.Products.Services
             }
 
             Brand? brand = null;
-
             if (request.BrandId.HasValue)
             {
                 brand = await _context.Brands
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(
-                        brand => brand.Id == request.BrandId.Value);
+                    .FirstOrDefaultAsync(b => b.Id == request.BrandId.Value);
 
                 if (brand is null)
                 {
@@ -172,23 +181,25 @@ namespace InventoryManagementSystem.Business.Products.Services
                         Status = ProductOperationStatus.BrandInactive
                     };
                 }
-              
-                if (await IsDuplicateProductAsync(
-                    request.Name,request.CategoryId,
-                    request.BrandId,request.UnitOfMeasure))
+            }
+
+            if (await IsDuplicateProductAsync(
+                name,
+                request.CategoryId,
+                request.BrandId,
+                request.UnitOfMeasureId))
+            {
+                return new ProductOperationResult<ProductResponse>
                 {
-                    return new ProductOperationResult<ProductResponse>
-                    {
-                        Status = ProductOperationStatus.DuplicateProduct
-                    };
-                }
+                    Status = ProductOperationStatus.DuplicateProduct
+                };
             }
 
             Product product = new()
             {
                 Sku = sku,
                 Name = name,
-                UnitOfMeasure = validUnit,
+                UnitOfMeasureId = unitOfMeasure.Id,
                 ReorderThreshold = request.ReorderThreshold,
                 CategoryId = request.CategoryId,
                 BrandId = request.BrandId,
@@ -207,7 +218,10 @@ namespace InventoryManagementSystem.Business.Products.Services
                     Id = product.Id,
                     SKU = product.Sku,
                     Name = product.Name,
-                    UnitOfMeasure = product.UnitOfMeasure,
+                    UnitOfMeasureId = product.UnitOfMeasureId,
+                    UnitOfMeasureName = unitOfMeasure.Name,
+                    UnitOfMeasureCode = unitOfMeasure.Code,
+                    UnitOfMeasure = unitOfMeasure.Name,
                     ReorderThreshold = product.ReorderThreshold,
                     SellingPrice = product.SellingPrice,
 
@@ -223,10 +237,9 @@ namespace InventoryManagementSystem.Business.Products.Services
             };
         }
 
-        public async Task<ProductOperationResult<ProductResponse>> UpdateAsync(Guid id,UpdateProductRequest request)
+        public async Task<ProductOperationResult<ProductResponse>> UpdateAsync(Guid id, UpdateProductRequest request)
         {
-            Product? product =
-                await _context.Products.FindAsync(id);
+            Product? product = await _context.Products.FindAsync(id);
 
             if (product is null)
             {
@@ -237,28 +250,30 @@ namespace InventoryManagementSystem.Business.Products.Services
             }
 
             string name = request.Name.Trim();
-            string unitOfMeasure = request.UnitOfMeasure.Trim();
 
-            string? validUnit =
-                AllowedUnits.FirstOrDefault(unit =>
-                    string.Equals(
-                        unit,
-                        unitOfMeasure,
-                        StringComparison.OrdinalIgnoreCase));
+            UnitOfMeasure? unitOfMeasure = await _context.UnitOfMeasures
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == request.UnitOfMeasureId);
 
-            if (validUnit is null)
+            if (unitOfMeasure is null)
             {
                 return new ProductOperationResult<ProductResponse>
                 {
-                    Status = ProductOperationStatus.InvalidUnitOfMeasure
+                    Status = ProductOperationStatus.UnitOfMeasureNotFound
                 };
             }
 
-            Category? category =
-                await _context.Categories
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(
-                        category => category.Id == request.CategoryId);
+            if (!unitOfMeasure.IsActive)
+            {
+                return new ProductOperationResult<ProductResponse>
+                {
+                    Status = ProductOperationStatus.UnitOfMeasureInactive
+                };
+            }
+
+            Category? category = await _context.Categories
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == request.CategoryId);
 
             if (category is null)
             {
@@ -277,13 +292,11 @@ namespace InventoryManagementSystem.Business.Products.Services
             }
 
             Brand? brand = null;
-
             if (request.BrandId.HasValue)
             {
                 brand = await _context.Brands
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(
-                        brand => brand.Id == request.BrandId.Value);
+                    .FirstOrDefaultAsync(b => b.Id == request.BrandId.Value);
 
                 if (brand is null)
                 {
@@ -302,18 +315,21 @@ namespace InventoryManagementSystem.Business.Products.Services
                 }
             }
 
-             if (await IsDuplicateProductAsync(
-                    request.Name,request.CategoryId,
-                    request.BrandId,request.UnitOfMeasure))
+            if (await IsDuplicateProductAsync(
+                name,
+                request.CategoryId,
+                request.BrandId,
+                request.UnitOfMeasureId,
+                id))
+            {
+                return new ProductOperationResult<ProductResponse>
                 {
-                    return new ProductOperationResult<ProductResponse>
-                    {
-                        Status = ProductOperationStatus.DuplicateProduct
-                    };
-                }
+                    Status = ProductOperationStatus.DuplicateProduct
+                };
+            }
 
             product.Name = name;
-            product.UnitOfMeasure = validUnit;
+            product.UnitOfMeasureId = unitOfMeasure.Id;
             product.ReorderThreshold = request.ReorderThreshold;
             product.CategoryId = request.CategoryId;
             product.BrandId = request.BrandId;
@@ -329,7 +345,10 @@ namespace InventoryManagementSystem.Business.Products.Services
                     Id = product.Id,
                     SKU = product.Sku,
                     Name = product.Name,
-                    UnitOfMeasure = product.UnitOfMeasure,
+                    UnitOfMeasureId = product.UnitOfMeasureId,
+                    UnitOfMeasureName = unitOfMeasure.Name,
+                    UnitOfMeasureCode = unitOfMeasure.Code,
+                    UnitOfMeasure = unitOfMeasure.Name,
                     ReorderThreshold = product.ReorderThreshold,
                     SellingPrice = product.SellingPrice,
                     CategoryId = product.CategoryId,
@@ -342,7 +361,7 @@ namespace InventoryManagementSystem.Business.Products.Services
             };
         }
 
-        public async Task<ProductOperationResult<ProductResponse>> ChangeStatusAsync(Guid id,ChangeProductStatusRequest request)
+        public async Task<ProductOperationResult<ProductResponse>> ChangeStatusAsync(Guid id, ChangeProductStatusRequest request)
         {
             Product? product = await _context.Products.FindAsync(id);
 
@@ -358,8 +377,7 @@ namespace InventoryManagementSystem.Business.Products.Services
 
             await _context.SaveChangesAsync();
 
-            ProductResponse? response =
-                await GetByIdAsync(product.Id);
+            ProductResponse? response = await GetByIdAsync(product.Id);
 
             return new ProductOperationResult<ProductResponse>
             {
@@ -368,6 +386,4 @@ namespace InventoryManagementSystem.Business.Products.Services
             };
         }
     }
-
-
 }

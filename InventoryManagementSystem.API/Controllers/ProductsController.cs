@@ -1,4 +1,4 @@
-﻿using InventoryManagementSystem.Business.Products;
+using InventoryManagementSystem.Business.Products;
 using InventoryManagementSystem.Business.Products.DTOs;
 using InventoryManagementSystem.Business.Products.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -99,10 +99,16 @@ public class ProductsController : ControllerBase
                 });
 
             case ProductOperationStatus.InvalidUnitOfMeasure:
+            case ProductOperationStatus.UnitOfMeasureNotFound:
+                return NotFound(new
+                {
+                    message = "Unit of measure was not found."
+                });
+
+            case ProductOperationStatus.UnitOfMeasureInactive:
                 return BadRequest(new
                 {
-                    message =
-                        "Invalid unit of measure. Allowed values are: Piece, Box, Kg, Liter, Pack."
+                    message = "The selected unit of measure is inactive."
                 });
             case ProductOperationStatus.DuplicateProduct:
                 return Conflict(new
@@ -184,10 +190,16 @@ public class ProductsController : ControllerBase
                 });
 
             case ProductOperationStatus.InvalidUnitOfMeasure:
+            case ProductOperationStatus.UnitOfMeasureNotFound:
+                return NotFound(new
+                {
+                    message = "Unit of measure was not found."
+                });
+
+            case ProductOperationStatus.UnitOfMeasureInactive:
                 return BadRequest(new
                 {
-                    message =
-                        "Invalid unit of measure. Allowed values are: Piece, Box, Kg, Liter, Pack."
+                    message = "The selected unit of measure is inactive."
                 });
         }
 

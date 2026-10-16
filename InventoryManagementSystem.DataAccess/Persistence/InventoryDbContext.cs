@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using InventoryManagementSystem.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +30,7 @@ public partial class InventoryDbContext : DbContext
     public virtual DbSet<WarehouseAssignment> WarehouseAssignments { get; set; }
 
     public virtual DbSet<StockMovement> StockMovements { get; set; }
+    public virtual DbSet<UnitOfMeasure> UnitOfMeasures { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -72,6 +73,18 @@ public partial class InventoryDbContext : DbContext
             entity.HasOne(d => d.Category).WithMany(p => p.Products)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Product_Category");
+
+            entity.HasOne(d => d.UnitOfMeasure).WithMany(p => p.Products)
+                .HasForeignKey(d => d.UnitOfMeasureId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Product_UnitOfMeasure");
+        });
+
+        modelBuilder.Entity<UnitOfMeasure>(entity =>
+        {
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<Supplier>(entity =>

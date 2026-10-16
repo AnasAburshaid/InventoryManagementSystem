@@ -1,4 +1,4 @@
-﻿using InventoryManagementSystem.Business.StockMovements;
+using InventoryManagementSystem.Business.StockMovements;
 using InventoryManagementSystem.Business.StockMovements.DTOs;
 using InventoryManagementSystem.Business.StockMovements.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -65,7 +65,7 @@ public class StockMovementsController : ControllerBase
             return NotFound(new { message = "Warehouse was not found or is inactive." });
 
         if (result.Status == StockMovementOperationStatus.AdjustmentReasonRequired)
-            return BadRequest(new { message = "An adjustment reason is required for this movement type." });
+            return BadRequest(new { message = "An adjustment reason or explanatory note is required for this adjustment." });
 
         if (result.Status == StockMovementOperationStatus.AdjustmentReasonNotFound)
             return NotFound(new { message = "The specified adjustment reason was not found or is inactive." });
