@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -27,7 +27,17 @@ public partial class Warehouse
 
     public bool IsActive { get; set; }
 
+    public bool CanAcceptAllCategories { get; set; } = true;
+
     [InverseProperty("Warehouse")]
-    public virtual ICollection<WarehouseAssignment> WarehouseAssignments { get; set; }
-    = new List<WarehouseAssignment>();
+    public virtual ICollection<WarehouseAssignment> WarehouseAssignments { get; set; } = new List<WarehouseAssignment>();
+
+    [InverseProperty("Warehouse")]
+    public virtual ICollection<PurchaseOrder> PurchaseOrders { get; set; } = new List<PurchaseOrder>();
+
+    [InverseProperty("Warehouse")]
+    public virtual ICollection<SalesOrder> SalesOrders { get; set; } = new List<SalesOrder>();
+
+    [InverseProperty("Warehouse")]
+    public virtual ICollection<WarehouseCategoryRestriction> CategoryRestrictions { get; set; } = new List<WarehouseCategoryRestriction>();
 }

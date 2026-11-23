@@ -1,4 +1,9 @@
-﻿using InventoryManagementSystem.Business.Categories.DTOs;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using InventoryManagementSystem.Business.Brands.DTOs;
+using InventoryManagementSystem.Business.Categories.DTOs;
 using InventoryManagementSystem.DataAccess.Entities;
 using InventoryManagementSystem.DataAccess.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -84,7 +89,7 @@ public class CategoryService
         };
     }
 
-    public async Task<CategoryOperationResult<CategoryResponse>> UpdateAsync(Guid id,UpdateCategoryRequest request)
+    public async Task<CategoryOperationResult<CategoryResponse>> UpdateAsync(Guid id, UpdateCategoryRequest request)
     {
         Category? category = await _context.Categories.FindAsync(id);
 
@@ -128,11 +133,9 @@ public class CategoryService
         };
     }
 
-    public async Task<CategoryOperationResult<CategoryResponse>>
-    ChangeStatusAsync(Guid id,ChangeCategoryStatusRequest request)
+    public async Task<CategoryOperationResult<CategoryResponse>> ChangeStatusAsync(Guid id, ChangeCategoryStatusRequest request)
     {
-        Category? category =
-            await _context.Categories.FindAsync(id);
+        Category? category = await _context.Categories.FindAsync(id);
 
         if (category is null)
         {
@@ -158,4 +161,22 @@ public class CategoryService
             }
         };
     }
-}   
+
+    public async Task<IReadOnlyCollection<BrandResponse>> GetBrandsForCategoryAsync(Guid categoryId)
+    {
+        return await _context.Products
+            .AsNoTracking()
+            .Where(p => p.CategoryId == categoryId && p.BrandId != null && p.IsActive && p.Brand!.IsActive)
+            .Select(p => p.Brand!)
+            .Distinct()
+            .OrderBy(b => b.Name)
+            .Select(b => new BrandResponse
+            {
+                Id = b.Id,
+                Name = b.Name,
+                CreatedAt = b.CreatedAt,
+                IsActive = b.IsActive
+            })
+            .ToListAsync();
+    }
+}

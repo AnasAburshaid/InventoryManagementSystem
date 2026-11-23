@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -26,4 +26,7 @@ public partial class Customer
     public DateTime CreatedAt { get; set; }
 
     public bool IsActive { get; set; }
+
+    [InverseProperty("Customer")]
+    public virtual ICollection<SalesOrder> SalesOrders { get; set; } = new List<SalesOrder>();
 }

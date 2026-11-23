@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -22,4 +22,7 @@ public partial class Brand
 
     [InverseProperty("Brand")]
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+
+    [InverseProperty("Brand")]
+    public virtual ICollection<SupplierBrandCapability> SupplierBrandCapabilities { get; set; } = new List<SupplierBrandCapability>();
 }

@@ -6,10 +6,15 @@ import Layout from './components/layout/Layout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import WarehousesPage from './pages/WarehousesPage';
+import WarehouseDetailPage from './pages/WarehouseDetailPage';
 import ProductsPage from './pages/ProductsPage';
 import StockMovementsPage from './pages/StockMovementsPage';
 import SuppliersPage from './pages/SuppliersPage';
+import SupplierDetailPage from './pages/SupplierDetailPage';
 import CustomersPage from './pages/CustomersPage';
+import SupplierProductsPage from './pages/SupplierProductsPage';
+import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
+import SalesOrdersPage from './pages/SalesOrdersPage';
 
 function App() {
     return (
@@ -36,6 +41,16 @@ function App() {
                             <ProtectedRoute>
                                 <Layout>
                                     <WarehousesPage />
+                                </Layout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/warehouses/:id"
+                        element={
+                            <ProtectedRoute>
+                                <Layout>
+                                    <WarehouseDetailPage />
                                 </Layout>
                             </ProtectedRoute>
                         }
@@ -71,11 +86,51 @@ function App() {
                         }
                     />
                     <Route
+                        path="/suppliers/:id"
+                        element={
+                            <ProtectedRoute>
+                                <Layout>
+                                    <SupplierDetailPage />
+                                </Layout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
                         path="/customers"
                         element={
                             <ProtectedRoute>
                                 <Layout>
                                     <CustomersPage />
+                                </Layout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/supplier-products"
+                        element={
+                            <ProtectedRoute>
+                                <Layout>
+                                    <SupplierProductsPage />
+                                </Layout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/purchase-orders"
+                        element={
+                            <ProtectedRoute>
+                                <Layout>
+                                    <PurchaseOrdersPage />
+                                </Layout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/sales-orders"
+                        element={
+                            <ProtectedRoute>
+                                <Layout>
+                                    <SalesOrdersPage />
                                 </Layout>
                             </ProtectedRoute>
                         }

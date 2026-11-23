@@ -1,4 +1,4 @@
-﻿namespace InventoryManagementSystem.Business.StockMovements;
+namespace InventoryManagementSystem.Business.StockMovements;
 
 public enum StockMovementOperationStatus
 {
@@ -11,5 +11,9 @@ public enum StockMovementOperationStatus
     UnauthorizedActor,
     InsufficientStock,
     DestinationWarehouseNotFoundOrInactive,
-    SameSourceAndDestination
+    SameSourceAndDestination,
+    CategoryNotAllowedInWarehouse,
+    SupplierNotFoundOrInactive,
+    ProductNotOfferedBySupplier,
+    InsufficientSupplierStock
 }

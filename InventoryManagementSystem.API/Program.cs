@@ -1,14 +1,21 @@
 using InventoryManagementSystem.API.Authorization;
+using InventoryManagementSystem.Business.Analytics.Services;
 using InventoryManagementSystem.Business.Authentication;
 using InventoryManagementSystem.Business.Authentication.Services;
 using InventoryManagementSystem.Business.Brands.Services;
 using InventoryManagementSystem.Business.Categories.Services;
 using InventoryManagementSystem.Business.Customers.Services;
 using InventoryManagementSystem.Business.Products.Services;
+using InventoryManagementSystem.Business.PurchaseOrders.Services;
+using InventoryManagementSystem.Business.SalesOrders.Services;
 using InventoryManagementSystem.Business.StockMovements.Services;
+using InventoryManagementSystem.Business.SupplierProducts.Services;
+using InventoryManagementSystem.Business.Suppliers.Capabilities.Services;
 using InventoryManagementSystem.Business.Suppliers.Services;
+using InventoryManagementSystem.Business.Suppliers.Stock.Services;
 using InventoryManagementSystem.Business.UnitOfMeasures.Services;
 using InventoryManagementSystem.Business.WarehouseAssignments.Services;
+using InventoryManagementSystem.Business.Warehouses.Restrictions.Services;
 using InventoryManagementSystem.Business.Warehouses.Services;
 using InventoryManagementSystem.DataAccess.Enums;
 using InventoryManagementSystem.DataAccess.Identity;
@@ -36,7 +43,6 @@ builder.Services.AddDbContext<InventoryDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationIdentityDbContext>()
     .AddDefaultTokenProviders();
-
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -100,9 +106,20 @@ builder.Services.AddScoped<SkuGenerator>();
 builder.Services.AddScoped<WarehouseService>();
 builder.Services.AddScoped<WarehouseCodeGenerator>();
 builder.Services.AddScoped<IWarehouseAssignmentService, WarehouseAssignmentService>();
+builder.Services.AddScoped<IWarehouseRestrictionService, WarehouseRestrictionService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<ISupplierCapabilityService, SupplierCapabilityService>();
+builder.Services.AddScoped<ISupplierStockService, SupplierStockService>();
+builder.Services.AddScoped<ISupplierProductService, SupplierProductService>();
+builder.Services.AddScoped<PurchaseOrderNumberGenerator>();
+builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
+builder.Services.AddScoped<IPurchaseOrderLineService, PurchaseOrderLineService>();
+builder.Services.AddScoped<SalesOrderNumberGenerator>();
+builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
+builder.Services.AddScoped<ISalesOrderLineService, SalesOrderLineService>();
 builder.Services.AddScoped<IStockMovementService, StockMovementService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthorizationHandler, WarehouseRoleHandler>();
 
@@ -160,9 +177,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:5174") // Added 5174 just in case Vite switches ports again
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -203,10 +221,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
-// ---> ADD THIS EXACTLY HERE <---
 app.UseCors("AllowReactFrontend");
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

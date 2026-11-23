@@ -1,4 +1,4 @@
-﻿using InventoryManagementSystem.Business.Suppliers.DTOs;
+using InventoryManagementSystem.Business.Suppliers.DTOs;
 using InventoryManagementSystem.DataAccess.Entities;
 using InventoryManagementSystem.DataAccess.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -56,7 +56,9 @@ public class SupplierService : ISupplierService
                 Phone = s.Phone,
                 Email = s.Email,
                 CreatedAt = s.CreatedAt,
-                IsActive = s.IsActive
+                IsActive = s.IsActive,
+                CanSupplyAllCategories = s.CanSupplyAllCategories,
+                CanSupplyAllBrands = s.CanSupplyAllBrands
             })
             .ToListAsync();
     }
@@ -73,7 +75,9 @@ public class SupplierService : ISupplierService
                 Phone = s.Phone,
                 Email = s.Email,
                 CreatedAt = s.CreatedAt,
-                IsActive = s.IsActive
+                IsActive = s.IsActive,
+                CanSupplyAllCategories = s.CanSupplyAllCategories,
+                CanSupplyAllBrands = s.CanSupplyAllBrands
             })
             .FirstOrDefaultAsync();
     }
@@ -100,7 +104,9 @@ public class SupplierService : ISupplierService
             Name = request.Name.Trim(),
             Phone = request.Phone?.Trim(),
             Email = request.Email?.Trim(),
-            IsActive = true
+            IsActive = true,
+            CanSupplyAllCategories = request.CanSupplyAllCategories,
+            CanSupplyAllBrands = request.CanSupplyAllBrands
         };
 
         _context.Suppliers.Add(supplier);
@@ -140,6 +146,8 @@ public class SupplierService : ISupplierService
         supplier.Name = request.Name.Trim();
         supplier.Phone = request.Phone?.Trim();
         supplier.Email = request.Email?.Trim();
+        supplier.CanSupplyAllCategories = request.CanSupplyAllCategories;
+        supplier.CanSupplyAllBrands = request.CanSupplyAllBrands;
 
         await _context.SaveChangesAsync();
 

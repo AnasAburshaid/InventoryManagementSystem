@@ -1,6 +1,8 @@
 using InventoryManagementSystem.Business.Products;
 using InventoryManagementSystem.Business.Products.DTOs;
 using InventoryManagementSystem.Business.Products.Services;
+using InventoryManagementSystem.Business.Suppliers.Capabilities.Services;
+using InventoryManagementSystem.Business.Suppliers.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,10 +14,12 @@ namespace InventoryManagementSystem.API.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly ProductService _productService;
+    private readonly ISupplierCapabilityService _supplierCapabilityService;
 
-    public ProductsController(ProductService productService)
+    public ProductsController(ProductService productService, ISupplierCapabilityService supplierCapabilityService)
     {
         _productService = productService;
+        _supplierCapabilityService = supplierCapabilityService;
     }
 
     [HttpGet]
@@ -217,6 +221,7 @@ public class ProductsController : ControllerBase
         return Ok(result.Data);
     }
 
+
     [Authorize(Roles = "Admin")]
     [HttpPatch("{id:guid}/status")]
     [ProducesResponseType(
@@ -251,5 +256,13 @@ public class ProductsController : ControllerBase
         }
 
         return Ok(result.Data);
+    }
+
+    [HttpGet("{id:guid}/eligible-suppliers")]
+    [ProducesResponseType(typeof(IReadOnlyCollection<EligibleSupplierDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyCollection<EligibleSupplierDto>>> GetEligibleSuppliers(Guid id)
+    {
+        var suppliers = await _supplierCapabilityService.GetEligibleSuppliersForProductAsync(id);
+        return Ok(suppliers);
     }
 }

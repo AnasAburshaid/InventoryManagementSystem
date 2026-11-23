@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace InventoryManagementSystem.Business.Warehouses.DTOs;
 
@@ -10,4 +10,6 @@ public class UpdateWarehouseRequest
 
     [StringLength(250)]
     public string? Address { get; set; }
+
+    public bool CanAcceptAllCategories { get; set; }
 }

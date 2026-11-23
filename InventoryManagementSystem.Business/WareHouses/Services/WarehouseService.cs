@@ -1,4 +1,4 @@
-﻿using InventoryManagementSystem.Business.Warehouses.DTOs;
+using InventoryManagementSystem.Business.Warehouses.DTOs;
 using InventoryManagementSystem.DataAccess.Entities;
 using InventoryManagementSystem.DataAccess.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -57,7 +57,8 @@ public class WarehouseService
                 Code = warehouse.Code,
                 Address = warehouse.Address,
                 CreatedAt = warehouse.CreatedAt,
-                IsActive = warehouse.IsActive
+                IsActive = warehouse.IsActive,
+                CanAcceptAllCategories = warehouse.CanAcceptAllCategories
             })
             .ToListAsync();
     }
@@ -74,7 +75,8 @@ public class WarehouseService
                 Code = warehouse.Code,
                 Address = warehouse.Address,
                 CreatedAt = warehouse.CreatedAt,
-                IsActive = warehouse.IsActive
+                IsActive = warehouse.IsActive,
+                CanAcceptAllCategories = warehouse.CanAcceptAllCategories
             })
             .FirstOrDefaultAsync();
     }
@@ -103,11 +105,11 @@ public class WarehouseService
             Name = name,
             Code = code,
             Address = address,
-            IsActive = true
+            IsActive = true,
+            CanAcceptAllCategories = request.CanAcceptAllCategories
         };
 
         _context.Warehouses.Add(warehouse);
-
         await _context.SaveChangesAsync();
 
         return Success(warehouse);
@@ -147,6 +149,7 @@ public class WarehouseService
 
         warehouse.Name = name;
         warehouse.Address = address;
+        warehouse.CanAcceptAllCategories = request.CanAcceptAllCategories;
 
         await _context.SaveChangesAsync();
 
@@ -188,7 +191,8 @@ public class WarehouseService
                 Code = warehouse.Code,
                 Address = warehouse.Address,
                 CreatedAt = warehouse.CreatedAt,
-                IsActive = warehouse.IsActive
+                IsActive = warehouse.IsActive,
+                CanAcceptAllCategories = warehouse.CanAcceptAllCategories
             }
         };
     }

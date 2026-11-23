@@ -1,4 +1,5 @@
-﻿using InventoryManagementSystem.Business.Categories;
+using InventoryManagementSystem.Business.Brands.DTOs;
+using InventoryManagementSystem.Business.Categories;
 using InventoryManagementSystem.Business.Categories.DTOs;
 using InventoryManagementSystem.Business.Categories.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -19,8 +20,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(IReadOnlyCollection<CategoryResponse>),StatusCodes.Status200OK)]
-
+    [ProducesResponseType(typeof(IReadOnlyCollection<CategoryResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyCollection<CategoryResponse>>> GetAll()
     {
         IReadOnlyCollection<CategoryResponse> categories =
@@ -30,10 +30,9 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(CategoryResponse),StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<CategoryResponse>> GetById(
-        Guid id)
+    public async Task<ActionResult<CategoryResponse>> GetById(Guid id)
     {
         CategoryResponse? category =
             await _categoryService.GetByIdAsync(id);
@@ -51,7 +50,7 @@ public class CategoriesController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPost]
-    [ProducesResponseType(typeof(CategoryResponse),StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -88,7 +87,7 @@ public class CategoriesController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPut("{id:guid}")]
-    [ProducesResponseType( typeof(CategoryResponse),StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -131,9 +130,7 @@ public class CategoriesController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPatch("{id:guid}/status")]
-    [ProducesResponseType(
-    typeof(CategoryResponse),
-    StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CategoryResponse>> ChangeStatus(
     Guid id,
@@ -162,5 +159,13 @@ public class CategoriesController : ControllerBase
         }
 
         return Ok(result.Data);
+    }
+
+    [HttpGet("{id:guid}/brands")]
+    [ProducesResponseType(typeof(IReadOnlyCollection<BrandResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyCollection<BrandResponse>>> GetBrands(Guid id)
+    {
+        var brands = await _categoryService.GetBrandsForCategoryAsync(id);
+        return Ok(brands);
     }
 }

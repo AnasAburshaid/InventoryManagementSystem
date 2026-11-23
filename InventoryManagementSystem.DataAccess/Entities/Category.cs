@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -22,4 +22,10 @@ public partial class Category
 
     [InverseProperty("Category")]
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+
+    [InverseProperty("Category")]
+    public virtual ICollection<SupplierCategoryCapability> SupplierCategoryCapabilities { get; set; } = new List<SupplierCategoryCapability>();
+
+    [InverseProperty("Category")]
+    public virtual ICollection<WarehouseCategoryRestriction> WarehouseCategoryRestrictions { get; set; } = new List<WarehouseCategoryRestriction>();
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import warehouseService from '../services/warehouseService';
 import {
     Warehouse,
@@ -10,6 +11,7 @@ import {
     RefreshCw,
     AlertCircle,
     CheckCircle2,
+    ArrowRight,
     X
 } from 'lucide-react';
 
@@ -200,8 +202,14 @@ export const WarehousesPage = () => {
                             </div>
 
                             <div className="mt-5 border-t border-slate-100 pt-4 flex items-center justify-between text-xs">
-                                <span className="text-slate-400">ID: {wh.id.substring(0, 8)}...</span>
-                                <span className="font-medium text-blue-600">Ready for Stock Movements</span>
+                                <span className="font-mono text-[11px] text-slate-400">ID: {wh.id.substring(0, 8)}...</span>
+                                <Link
+                                    to={`/warehouses/${wh.id}`}
+                                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
+                                >
+                                    <span>View Inventory & Details</span>
+                                    <ArrowRight className="h-3.5 w-3.5" />
+                                </Link>
                             </div>
                         </div>
                     ))}

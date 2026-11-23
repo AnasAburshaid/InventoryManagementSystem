@@ -34,6 +34,32 @@ export const warehouseService = {
     async createAssignment(data) {
         const response = await api.post('/warehouse-assignments', data);
         return response.data;
+    },
+
+    // Category Restrictions
+    async getRestrictions(warehouseId) {
+        const response = await api.get(`/warehouses/${warehouseId}/categories`);
+        return response.data;
+    },
+
+    async setRestrictions(warehouseId, categoryIds) {
+        const response = await api.put(`/warehouses/${warehouseId}/categories`, { categoryIds });
+        return response.data;
+    },
+
+    async updateCategoryFlag(warehouseId, canAcceptAllCategories) {
+        const response = await api.put(`/warehouses/${warehouseId}/category-flag`, { canAcceptAllCategories });
+        return response.data;
+    },
+
+    async checkCategoryEligibility(warehouseId, categoryId) {
+        const response = await api.get(`/warehouses/${warehouseId}/category-eligibility/${categoryId}`);
+        return response.data;
+    },
+
+    async getEligibleProducts(warehouseId) {
+        const response = await api.get(`/warehouses/${warehouseId}/eligible-products`);
+        return response.data;
     }
 };
 

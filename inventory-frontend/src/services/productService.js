@@ -31,6 +31,11 @@ export const productService = {
         return response.data;
     },
 
+    async getBrandsByCategory(categoryId) {
+        const response = await api.get(`/categories/${categoryId}/brands`);
+        return response.data;
+    },
+
     async createBrand(data) {
         const response = await api.post('/brands', data);
         return response.data;

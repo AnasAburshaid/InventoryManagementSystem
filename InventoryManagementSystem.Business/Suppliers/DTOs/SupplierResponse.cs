@@ -1,4 +1,4 @@
-﻿namespace InventoryManagementSystem.Business.Suppliers.DTOs;
+namespace InventoryManagementSystem.Business.Suppliers.DTOs;
 
 public class SupplierResponse
 {
@@ -8,4 +8,6 @@ public class SupplierResponse
     public string? Email { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsActive { get; set; }
+    public bool CanSupplyAllCategories { get; set; }
+    public bool CanSupplyAllBrands { get; set; }
 }

@@ -1,5 +1,8 @@
-﻿using InventoryManagementSystem.Business.Warehouses;
+using InventoryManagementSystem.Business.Products.DTOs;
+using InventoryManagementSystem.Business.Warehouses;
 using InventoryManagementSystem.Business.Warehouses.DTOs;
+using InventoryManagementSystem.Business.Warehouses.Restrictions.DTOs;
+using InventoryManagementSystem.Business.Warehouses.Restrictions.Services;
 using InventoryManagementSystem.Business.Warehouses.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +15,14 @@ namespace InventoryManagementSystem.API.Controllers;
 public class WarehousesController : ControllerBase
 {
     private readonly WarehouseService _warehouseService;
+    private readonly IWarehouseRestrictionService _warehouseRestrictionService;
 
-    public WarehousesController(WarehouseService warehouseService)
+    public WarehousesController(
+        WarehouseService warehouseService,
+        IWarehouseRestrictionService warehouseRestrictionService)
     {
         _warehouseService = warehouseService;
+        _warehouseRestrictionService = warehouseRestrictionService;
     }
 
     [HttpGet]
@@ -160,5 +167,72 @@ public class WarehousesController : ControllerBase
         }
 
         return Ok(result.Data);
+    }
+
+    [HttpGet("{id:guid}/categories")]
+    [ProducesResponseType(typeof(WarehouseCategoryRestrictionsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<WarehouseCategoryRestrictionsResponse>> GetCategories(Guid id)
+    {
+        var response = await _warehouseRestrictionService.GetRestrictionsAsync(id);
+        if (response is null)
+        {
+            return NotFound(new { message = "Warehouse was not found." });
+        }
+        return Ok(response);
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id:guid}/categories")]
+    [ProducesResponseType(typeof(WarehouseCategoryRestrictionsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<WarehouseCategoryRestrictionsResponse>> SetCategories(
+        Guid id,
+        [FromBody] SetWarehouseCategoryRestrictionsRequest request)
+    {
+        var (isSuccess, error, data) = await _warehouseRestrictionService.SetCategoriesAsync(id, request.CategoryIds);
+        if (!isSuccess)
+        {
+            if (error != null && error.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                return NotFound(new { message = error });
+            return BadRequest(new { message = error });
+        }
+        return Ok(data);
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id:guid}/category-flag")]
+    [ProducesResponseType(typeof(WarehouseCategoryRestrictionsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<WarehouseCategoryRestrictionsResponse>> UpdateCategoryFlag(
+        Guid id,
+        [FromBody] UpdateWarehouseCategoryFlagsRequest request)
+    {
+        var (isSuccess, error, data) = await _warehouseRestrictionService.UpdateFlagAsync(id, request.CanAcceptAllCategories);
+        if (!isSuccess)
+        {
+            if (error != null && error.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                return NotFound(new { message = error });
+            return BadRequest(new { message = error });
+        }
+        return Ok(data);
+    }
+
+    [HttpGet("{id:guid}/category-eligibility/{categoryId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult> CheckCategoryEligibility(Guid id, Guid categoryId)
+    {
+        var (isEligible, reason) = await _warehouseRestrictionService.ValidateCategoryEligibilityAsync(id, categoryId);
+        return Ok(new { isEligible, reason });
+    }
+
+    [HttpGet("{id:guid}/eligible-products")]
+    [ProducesResponseType(typeof(IReadOnlyCollection<ProductResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyCollection<ProductResponse>>> GetEligibleProducts(Guid id)
+    {
+        var products = await _warehouseRestrictionService.GetEligibleProductsAsync(id);
+        return Ok(products);
     }
 }

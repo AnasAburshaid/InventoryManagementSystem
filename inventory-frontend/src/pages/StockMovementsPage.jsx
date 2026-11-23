@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import warehouseService from '../services/warehouseService';
 import productService from '../services/productService';
 import stockMovementService from '../services/stockMovementService';
 import supplierService from '../services/supplierService';
 import customerService from '../services/customerService';
+import supplierProductService from '../services/supplierProductService';
+import { formatMoneyK, formatCurrency } from '../utils/formatUtils';
 import {
     ArrowLeftRight,
     ArrowDownLeft,
@@ -26,73 +28,97 @@ import {
     ExternalLink,
     X,
     ShoppingCart,
-    ShoppingBag
+    ShoppingBag,
+    ShieldCheck,
+    ShieldAlert,
+    Star,
+    Search,
+    Check,
+    Tag,
+    ChevronDown,
+    Filter,
+    DollarSign,
+    Building2,
+    MapPin
 } from 'lucide-react';
 
 export const StockMovementsPage = () => {
     const navigate = useNavigate();
 
+    // Base Entities
     const [warehouses, setWarehouses] = useState([]);
-    const [products, setProducts] = useState([]);
-    const [suppliers, setSuppliers] = useState([]);
     const [customers, setCustomers] = useState([]);
     const [adjustmentReasons, setAdjustmentReasons] = useState([]);
+    const [supplierProducts, setSupplierProducts] = useState([]);
 
+    // Facility & Rules
     const [selectedWarehouseId, setSelectedWarehouseId] = useState('');
-    const [selectedProductId, setSelectedProductId] = useState('');
-
-    const [currentStock, setCurrentStock] = useState(null);
-    const [history, setHistory] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [pageError, setPageError] = useState('');
-    const [pageSuccess, setPageSuccess] = useState('');
+    const [warehouseRestrictions, setWarehouseRestrictions] = useState(null);
+    const [loadingRestrictions, setLoadingRestrictions] = useState(false);
 
     // Movement Form State
-    const [movementType, setMovementType] = useState('Purchase');
+    const [movementType, setMovementType] = useState('Purchase'); // Purchase, Sale, AdjustmentIn, AdjustmentOut
+    const [eligibleProducts, setEligibleProducts] = useState([]);
+    const [loadingEligibleProducts, setLoadingEligibleProducts] = useState(false);
+    const [selectedProductId, setSelectedProductId] = useState('');
+
+    // Product Picker Search Modal
+    const [isProductPickerOpen, setIsProductPickerOpen] = useState(false);
+    const [productSearch, setProductSearch] = useState('');
+    const [productCategoryFilter, setProductCategoryFilter] = useState('All');
+
+    // Supplier / Customer / Reason Actor
+    const [eligibleSuppliers, setEligibleSuppliers] = useState([]);
+    const [loadingEligibleSuppliers, setLoadingEligibleSuppliers] = useState(false);
     const [selectedSupplierId, setSelectedSupplierId] = useState('');
     const [selectedCustomerId, setSelectedCustomerId] = useState('');
     const [selectedAdjustmentReasonId, setSelectedAdjustmentReasonId] = useState('');
+
+    // Quantity & Reference
     const [quantity, setQuantity] = useState(1);
     const [referenceType, setReferenceType] = useState('Supplier');
     const [referenceId, setReferenceId] = useState('');
     const [submittingMovement, setSubmittingMovement] = useState(false);
 
-    // Supplier Info Modal State (for popups)
+    // Stock & Ledger Display
+    const [currentStock, setCurrentStock] = useState(null);
+    const [history, setHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+    const [historySearch, setHistorySearch] = useState('');
+
+    // UI Feedback
+    const [pageError, setPageError] = useState('');
+    const [pageSuccess, setPageSuccess] = useState('');
+
+    // Inspector Modals
     const [supplierModalOpen, setSupplierModalOpen] = useState(false);
     const [selectedSupplierForModal, setSelectedSupplierForModal] = useState(null);
-
-    // Customer Info Modal State (for popups)
     const [customerModalOpen, setCustomerModalOpen] = useState(false);
     const [selectedCustomerForModal, setSelectedCustomerForModal] = useState(null);
 
-    // Transfer Modal / Form State
+    // Transfer Modal
     const [showTransfer, setShowTransfer] = useState(false);
     const [destWarehouseId, setDestWarehouseId] = useState('');
     const [transferQty, setTransferQty] = useState(1);
     const [submittingTransfer, setSubmittingTransfer] = useState(false);
 
-    // Fetch initial warehouses, products, suppliers, customers, and adjustment reasons
+    // 1. Initial Load of Global Entities
     useEffect(() => {
         const fetchInitial = async () => {
             try {
-                const [whs, prods, sups, custs, adjReasons] = await Promise.all([
+                const [whs, custs, adjReasons, spData] = await Promise.all([
                     warehouseService.getAll(),
-                    productService.getAll(),
-                    supplierService.getAll().catch(() => []),
                     customerService.getAll().catch(() => []),
-                    stockMovementService.getAdjustmentReasons().catch(() => [])
+                    stockMovementService.getAdjustmentReasons().catch(() => []),
+                    supplierProductService.getAll().catch(() => [])
                 ]);
                 setWarehouses(whs || []);
-                setProducts(prods || []);
-                setSuppliers(sups || []);
                 setCustomers(custs || []);
                 setAdjustmentReasons(adjReasons || []);
+                setSupplierProducts(spData || []);
 
-                if (whs?.length > 0) setSelectedWarehouseId(whs[0].id);
-                if (prods?.length > 0) setSelectedProductId(prods[0].id);
-                if (sups?.length > 0) {
-                    const activeSups = sups.filter((s) => s.isActive);
-                    if (activeSups.length > 0) setSelectedSupplierId(activeSups[0].id);
+                if (whs?.length > 0) {
+                    setSelectedWarehouseId(whs[0].id);
                 }
                 if (custs?.length > 0) {
                     const activeCusts = custs.filter((c) => c.isActive);
@@ -104,17 +130,101 @@ export const StockMovementsPage = () => {
                 }
             } catch (err) {
                 console.error('Failed to load initial data:', err);
-                setPageError('Failed to load warehouses, products, suppliers, or customers.');
+                setPageError('Failed to load initial facility and customer data.');
             }
         };
         fetchInitial();
     }, []);
 
-    // Fetch Stock Level & Movement History whenever Warehouse or Product changes
-    const fetchStockData = async () => {
-        if (!selectedWarehouseId || !selectedProductId) return;
-        setLoading(true);
-        setPageError('');
+    // 2. Load Warehouse Restrictions and Eligible Products
+    useEffect(() => {
+        if (!selectedWarehouseId) return;
+
+        let isMounted = true;
+        const loadWarehouseData = async () => {
+            setLoadingEligibleProducts(true);
+            setLoadingRestrictions(true);
+            try {
+                const [restr, prods] = await Promise.all([
+                    warehouseService.getRestrictions(selectedWarehouseId).catch(() => null),
+                    warehouseService.getEligibleProducts(selectedWarehouseId).catch(() => [])
+                ]);
+
+                if (!isMounted) return;
+                setWarehouseRestrictions(restr);
+                setEligibleProducts(prods || []);
+
+                if (prods && prods.length > 0) {
+                    const stillEligible = prods.find((p) => p.id === selectedProductId);
+                    if (!stillEligible) {
+                        setSelectedProductId(prods[0].id);
+                    }
+                } else {
+                    setSelectedProductId('');
+                    setEligibleSuppliers([]);
+                    setSelectedSupplierId('');
+                }
+            } catch (err) {
+                if (isMounted) {
+                    console.error('Failed to load eligible products:', err);
+                    setPageError('Failed to load eligible products for the selected facility.');
+                }
+            } finally {
+                if (isMounted) {
+                    setLoadingEligibleProducts(false);
+                    setLoadingRestrictions(false);
+                }
+            }
+        };
+
+        loadWarehouseData();
+        return () => {
+            isMounted = false;
+        };
+    }, [selectedWarehouseId]);
+
+    // 3. Load Eligible Suppliers for Product
+    const fetchEligibleSuppliers = useCallback(async (productId) => {
+        if (!productId) {
+            setEligibleSuppliers([]);
+            setSelectedSupplierId('');
+            return;
+        }
+
+        setLoadingEligibleSuppliers(true);
+        try {
+            const data = await supplierService.getEligibleSuppliersForProduct(productId);
+            setEligibleSuppliers(data || []);
+
+            if (data && data.length > 0) {
+                const preferred = data.find((s) => s.isPreferred);
+                setSelectedSupplierId(preferred ? preferred.supplierId : data[0].supplierId);
+            } else {
+                setSelectedSupplierId('');
+            }
+        } catch (err) {
+            console.error('Failed to fetch eligible suppliers:', err);
+            setEligibleSuppliers([]);
+            setSelectedSupplierId('');
+        } finally {
+            setLoadingEligibleSuppliers(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (movementType === 'Purchase' && selectedProductId) {
+            fetchEligibleSuppliers(selectedProductId);
+        }
+    }, [selectedProductId, movementType, fetchEligibleSuppliers]);
+
+    // 4. Fetch Stock Level & Ledger History
+    const fetchStockData = useCallback(async () => {
+        if (!selectedWarehouseId || !selectedProductId) {
+            setCurrentStock(null);
+            setHistory([]);
+            return;
+        }
+        setLoadingHistory(true);
         try {
             const [stockRes, histRes] = await Promise.all([
                 stockMovementService.getCurrentStock(selectedWarehouseId, selectedProductId),
@@ -124,21 +234,127 @@ export const StockMovementsPage = () => {
             setHistory(histRes || []);
         } catch (err) {
             console.error('Error fetching stock movements:', err);
-            setPageError('Failed to load stock movements. Ensure your account is authorized for this warehouse.');
         } finally {
-            setLoading(false);
+            setLoadingHistory(false);
         }
-    };
+    }, [selectedWarehouseId, selectedProductId]);
 
     useEffect(() => {
         fetchStockData();
-    }, [selectedWarehouseId, selectedProductId]);
+    }, [fetchStockData]);
+
+    // Selected Entities
+    const selectedWarehouse = warehouses.find((w) => w.id === selectedWarehouseId);
+    const selectedProduct = eligibleProducts.find((p) => p.id === selectedProductId);
+    const currentSelectedSupplier = eligibleSuppliers.find((s) => s.supplierId === selectedSupplierId);
+    const activeCustomers = customers.filter((c) => c.isActive);
+    const currentSelectedCustomer = customers.find((c) => c.id === selectedCustomerId);
+
+    // Sourcing Price Intelligence Map per Product (calculates avg purchase price across suppliers)
+    const pricingIntelligenceMap = useMemo(() => {
+        const map = {};
+        supplierProducts.forEach((sp) => {
+            if (!sp.productId) return;
+            const price = parseFloat(sp.lastPurchasePrice);
+            if (isNaN(price) || price <= 0) return;
+
+            if (!map[sp.productId]) {
+                map[sp.productId] = {
+                    prices: [],
+                    suppliers: [],
+                    minPrice: price,
+                    maxPrice: price,
+                    preferredSupplier: null,
+                    preferredPrice: null
+                };
+            }
+            map[sp.productId].prices.push(price);
+            map[sp.productId].suppliers.push(sp.supplierName || 'Authorized Vendor');
+            map[sp.productId].minPrice = Math.min(map[sp.productId].minPrice, price);
+            map[sp.productId].maxPrice = Math.max(map[sp.productId].maxPrice, price);
+            if (sp.isPreferred) {
+                map[sp.productId].preferredSupplier = sp.supplierName;
+                map[sp.productId].preferredPrice = price;
+            }
+        });
+
+        Object.keys(map).forEach((prodId) => {
+            const item = map[prodId];
+            const sum = item.prices.reduce((a, b) => a + b, 0);
+            item.avgPrice = item.prices.length > 0 ? sum / item.prices.length : null;
+            item.supplierCount = item.prices.length;
+        });
+
+        return map;
+    }, [supplierProducts]);
+
+    const selectedProductAvgPrice = selectedProduct ? pricingIntelligenceMap[selectedProduct.id]?.avgPrice : null;
+
+    // Calculated Unit Price and Total Valuation / Revenue for the Movement
+    const unitPrice = useMemo(() => {
+        if (!selectedProduct) return 0;
+        const pricing = pricingIntelligenceMap[selectedProduct.id];
+        const avgCost = pricing?.avgPrice;
+        if (movementType === 'Purchase') {
+            return (
+                currentSelectedSupplier?.lastPurchasePrice ??
+                currentSelectedSupplier?.purchasePrice ??
+                avgCost ??
+                selectedProduct.sellingPrice ??
+                0
+            );
+        }
+        return selectedProduct.sellingPrice || avgCost || 0;
+    }, [selectedProduct, movementType, currentSelectedSupplier, pricingIntelligenceMap]);
+
+    const estimatedTotalValue = useMemo(() => {
+        const qty = parseFloat(quantity) || 0;
+        return qty * unitPrice;
+    }, [quantity, unitPrice]);
+
+    // Filtered Products for the Searchable Picker
+    const availableCategories = useMemo(() => {
+        const cats = new Set(eligibleProducts.map((p) => p.categoryName).filter(Boolean));
+        return ['All', ...Array.from(cats)];
+    }, [eligibleProducts]);
+
+    const filteredProducts = useMemo(() => {
+        return eligibleProducts.filter((p) => {
+            const q = productSearch.toLowerCase().trim();
+            const matchesQuery = !q ||
+                p.name?.toLowerCase().includes(q) ||
+                p.sku?.toLowerCase().includes(q) ||
+                p.SKU?.toLowerCase().includes(q) ||
+                p.categoryName?.toLowerCase().includes(q) ||
+                p.brandName?.toLowerCase().includes(q);
+
+            const matchesCategory = productCategoryFilter === 'All' || p.categoryName === productCategoryFilter;
+            return matchesQuery && matchesCategory;
+        });
+    }, [eligibleProducts, productSearch, productCategoryFilter]);
+
+    // Filtered History for Ledger
+    const filteredHistory = useMemo(() => {
+        if (!historySearch.trim()) return history;
+        const q = historySearch.toLowerCase();
+        return history.filter((item) =>
+            item.type?.toLowerCase().includes(q) ||
+            item.referenceId?.toLowerCase().includes(q) ||
+            item.referenceType?.toLowerCase().includes(q) ||
+            item.adjustmentReasonName?.toLowerCase().includes(q)
+        );
+    }, [history, historySearch]);
 
     // Open supplier info modal
-    const openSupplierModal = (supplier) => {
-        if (!supplier) return;
-        setSelectedSupplierForModal(supplier);
-        setSupplierModalOpen(true);
+    const openSupplierModal = async (supplierId) => {
+        if (!supplierId) return;
+        try {
+            const fullSupplier = await supplierService.getById(supplierId);
+            setSelectedSupplierForModal(fullSupplier);
+            setSupplierModalOpen(true);
+        } catch (err) {
+            console.error('Failed to fetch supplier details:', err);
+        }
     };
 
     // Open customer info modal
@@ -148,97 +364,117 @@ export const StockMovementsPage = () => {
         setCustomerModalOpen(true);
     };
 
-    // Handle Record Movement (Purchase, Sale, Adjustment)
+    // Movement Type Switch
+    const handleMovementTypeChange = (type) => {
+        setMovementType(type);
+        setPageError('');
+        setPageSuccess('');
+        if (type === 'Purchase') {
+            setReferenceType('Supplier');
+            if (selectedProductId) {
+                fetchEligibleSuppliers(selectedProductId);
+            }
+        } else if (type === 'Sale') {
+            setReferenceType('Customer');
+        } else {
+            setReferenceType('Adjustment');
+        }
+    };
+
+    // Submit Movement
     const handleRecordMovement = async (e) => {
         e.preventDefault();
-        setSubmittingMovement(true);
         setPageError('');
         setPageSuccess('');
 
-        try {
-            let refType = referenceType;
-            let refId = referenceId;
+        const reqQty = parseInt(quantity, 10);
+        if (isNaN(reqQty) || reqQty <= 0) {
+            setPageError('Please enter a valid whole number quantity of at least 1.');
+            return;
+        }
 
-            if (movementType === 'Purchase') {
-                if (!selectedSupplierId) {
-                    setPageError('Please select a supplier for this purchase.');
-                    setSubmittingMovement(false);
-                    return;
-                }
-                refType = 'Supplier';
-                refId = referenceId.trim()
-                    ? `${selectedSupplierId}|${referenceId.trim()}`
-                    : selectedSupplierId;
-            } else if (movementType === 'Sale') {
-                if (!selectedCustomerId) {
-                    setPageError('Please select a customer for this sale.');
-                    setSubmittingMovement(false);
-                    return;
-                }
-                if (parseFloat(quantity) > (currentStock ?? 0)) {
-                    setPageError(`Cannot sell ${quantity} units. Only ${currentStock ?? 0} units are currently available.`);
-                    setSubmittingMovement(false);
-                    return;
-                }
-                refType = 'Customer';
-                refId = referenceId.trim()
-                    ? `${selectedCustomerId}|${referenceId.trim()}`
-                    : selectedCustomerId;
-            } else if (movementType.startsWith('Adjustment')) {
-                if (movementType === 'AdjustmentOut' && parseFloat(quantity) > (currentStock ?? 0)) {
-                    setPageError(`Cannot adjust out ${quantity} units. Only ${currentStock ?? 0} units are currently in stock.`);
-                    setSubmittingMovement(false);
-                    return;
-                }
-                if (!selectedAdjustmentReasonId && !referenceId.trim()) {
-                    setPageError('Please select an adjustment reason or provide an explanatory note.');
-                    setSubmittingMovement(false);
-                    return;
-                }
-                refType = 'Adjustment';
-                refId = referenceId.trim() || null;
+        let refType = referenceType;
+        let refId = referenceId;
+        let supplierIdToPass = null;
+
+        if (movementType === 'Purchase') {
+            if (!selectedSupplierId) {
+                setPageError('Please select an authorized supplier for this purchase.');
+                return;
             }
+            supplierIdToPass = selectedSupplierId;
+            refType = 'Supplier';
+            refId = referenceId.trim()
+                ? `${selectedSupplierId}|${referenceId.trim()}`
+                : selectedSupplierId;
+        } else if (movementType === 'Sale') {
+            if (!selectedCustomerId) {
+                setPageError('Please select a customer for this sale.');
+                return;
+            }
+            if (reqQty > (currentStock ?? 0)) {
+                setPageError(`Cannot sell ${reqQty} units. Only ${currentStock ?? 0} units are currently in stock.`);
+                return;
+            }
+            refType = 'Customer';
+            refId = referenceId.trim()
+                ? `${selectedCustomerId}|${referenceId.trim()}`
+                : selectedCustomerId;
+        } else if (movementType.startsWith('Adjustment')) {
+            if (movementType === 'AdjustmentOut' && reqQty > (currentStock ?? 0)) {
+                setPageError(`Cannot adjust out ${reqQty} units. Only ${currentStock ?? 0} units are currently in warehouse stock.`);
+                return;
+            }
+            if (!selectedAdjustmentReasonId && !referenceId.trim()) {
+                setPageError('Please select an adjustment reason or enter an explanatory note.');
+                return;
+            }
+            refType = 'Adjustment';
+            refId = referenceId.trim() || null;
+        }
 
+        setSubmittingMovement(true);
+        try {
             await stockMovementService.recordMovement(selectedWarehouseId, {
                 productId: selectedProductId,
                 warehouseId: selectedWarehouseId,
-                quantity: parseFloat(quantity),
+                quantity: reqQty,
                 type: movementType,
                 adjustmentReasonId: movementType.startsWith('Adjustment') ? (selectedAdjustmentReasonId || null) : null,
                 referenceType: refType || null,
-                referenceId: refId || null
+                referenceId: refId || null,
+                supplierId: supplierIdToPass
             });
 
-            let successNote = `Recorded ${movementType} of ${quantity} units successfully!`;
-            if (movementType === 'Purchase') {
-                const supplierObj = suppliers.find((s) => s.id === selectedSupplierId);
-                if (supplierObj) successNote = `Purchased ${quantity} units from ${supplierObj.name} successfully!`;
-            } else if (movementType === 'Sale') {
-                const customerObj = customers.find((c) => c.id === selectedCustomerId);
-                if (customerObj) successNote = `Sold ${quantity} units to ${customerObj.name} successfully!`;
-            } else if (movementType.startsWith('Adjustment')) {
-                const reasonObj = adjustmentReasons.find((r) => r.id === selectedAdjustmentReasonId);
-                const reasonText = reasonObj ? ` (${reasonObj.name})` : '';
-                successNote = `Adjusted stock by ${movementType === 'AdjustmentOut' ? '-' : '+'}${quantity} units${reasonText} successfully!`;
+            let successNote = `Successfully recorded ${movementType} of ${reqQty} units!`;
+            if (movementType === 'Purchase' && currentSelectedSupplier) {
+                successNote = `Purchased ${reqQty} units from ${currentSelectedSupplier.supplierName}!`;
+            } else if (movementType === 'Sale' && currentSelectedCustomer) {
+                successNote = `Sold ${reqQty} units to ${currentSelectedCustomer.name}!`;
             }
 
             setPageSuccess(successNote);
             setReferenceId('');
-            await fetchStockData();
+            setQuantity(1);
+
+            await Promise.all([
+                fetchStockData(),
+                movementType === 'Purchase' && selectedProductId ? fetchEligibleSuppliers(selectedProductId) : Promise.resolve()
+            ]);
         } catch (err) {
             console.error('Error recording movement:', err);
-            const msg = err.response?.data?.message || err.response?.data?.title || 'Failed to record movement.';
+            const msg = err.response?.data?.message || err.response?.data?.title || 'Failed to record stock movement.';
             setPageError(msg);
         } finally {
             setSubmittingMovement(false);
         }
     };
 
-    // Handle Transfer Stock
+    // Execute Inter-Warehouse Transfer
     const handleTransferStock = async (e) => {
         e.preventDefault();
         if (selectedWarehouseId === destWarehouseId) {
-            setPageError('Source and Destination warehouse cannot be the same.');
+            setPageError('Destination facility must be different from source facility.');
             return;
         }
 
@@ -246,16 +482,22 @@ export const StockMovementsPage = () => {
         setPageError('');
         setPageSuccess('');
 
+        const trfQtyInt = parseInt(transferQty, 10);
+        if (isNaN(trfQtyInt) || trfQtyInt <= 0) {
+            setPageError('Please enter a valid transfer quantity of at least 1.');
+            return;
+        }
+
         try {
             await stockMovementService.transferStock(selectedWarehouseId, {
                 productId: selectedProductId,
                 destinationWarehouseId: destWarehouseId,
-                quantity: parseFloat(transferQty),
+                quantity: trfQtyInt,
                 referenceType: 'WarehouseTransfer',
                 referenceId: `TRF-${Date.now().toString().slice(-5)}`
             });
 
-            setPageSuccess(`Transferred ${transferQty} units to destination warehouse successfully!`);
+            setPageSuccess(`Transferred ${transferQty} units successfully!`);
             setShowTransfer(false);
             await fetchStockData();
         } catch (err) {
@@ -267,16 +509,7 @@ export const StockMovementsPage = () => {
         }
     };
 
-    const selectedWarehouse = warehouses.find((w) => w.id === selectedWarehouseId);
-    const selectedProduct = products.find((p) => p.id === selectedProductId);
-
-    const activeSuppliers = suppliers.filter((s) => s.isActive);
-    const currentSelectedSupplier = suppliers.find((s) => s.id === selectedSupplierId);
-
-    const activeCustomers = customers.filter((c) => c.isActive);
-    const currentSelectedCustomer = customers.find((c) => c.id === selectedCustomerId);
-
-    // Helper to parse supplier from ledger reference
+    // Helper: Parse supplier from ledger reference
     const parseSupplierFromRef = (item) => {
         if (!item.referenceId) return null;
         let candidateId = item.referenceId;
@@ -288,19 +521,20 @@ export const StockMovementsPage = () => {
             invoiceNumber = parts[1];
         }
 
-        const supplier = suppliers.find(
-            (s) => s.id.toLowerCase() === candidateId.toLowerCase()
+        const supplier = eligibleSuppliers.find(
+            (s) => s.supplierId.toLowerCase() === candidateId.toLowerCase()
         );
 
         if (!supplier && item.referenceType !== 'Supplier') return null;
 
         return {
-            supplier,
+            supplierId: candidateId,
+            supplierName: supplier ? supplier.supplierName : 'Supplier',
             invoiceNumber
         };
     };
 
-    // Helper to parse customer from ledger reference
+    // Helper: Parse customer from ledger reference
     const parseCustomerFromRef = (item) => {
         if (!item.referenceId) return null;
         let candidateId = item.referenceId;
@@ -325,447 +559,593 @@ export const StockMovementsPage = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-7xl mx-auto">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">Stock Movements & Ledger</h1>
-                    <p className="text-sm text-slate-500 mt-1">
-                        Audit-trail inventory movements, purchases from suppliers, customer sales, and warehouse transfers.
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">Stock Movements</h1>
+                    <p className="text-xs text-slate-500 mt-1">
+                        Record purchases, sales, and inventory counts with facility and supplier compatibility guards.
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+
+                <div className="flex items-center gap-2">
                     <button
-                        onClick={fetchStockData}
-                        disabled={loading}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
+                        onClick={async () => {
+                            await fetchStockData();
+                            if (movementType === 'Purchase' && selectedProductId) {
+                                await fetchEligibleSuppliers(selectedProductId);
+                            }
+                        }}
+                        disabled={loadingHistory || loadingEligibleSuppliers}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition disabled:opacity-60"
                     >
-                        <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-blue-600' : ''}`} />
-                        <span>Refresh Ledger</span>
+                        <RefreshCw className={`h-3.5 w-3.5 ${loadingHistory ? 'animate-spin text-blue-600' : ''}`} />
+                        <span>Refresh</span>
                     </button>
                 </div>
             </div>
 
+            {/* Notification Alerts */}
             {pageError && (
-                <div className="flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-50 p-4 text-xs text-red-800">
-                    <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
-                    <span>{pageError}</span>
+                <div className="flex items-center gap-3 rounded-xl border border-rose-500/30 bg-rose-50 p-4 text-xs text-rose-800 animate-in fade-in">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+                    <span className="font-medium">{pageError}</span>
                 </div>
             )}
 
             {pageSuccess && (
-                <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-50 p-4 text-xs text-emerald-800">
+                <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-50 p-4 text-xs text-emerald-800 animate-in fade-in">
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                    <span>{pageSuccess}</span>
+                    <span className="font-medium">{pageSuccess}</span>
                 </div>
             )}
 
-            {/* Warehouse & Product Selector Bar */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
-                <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
-                        Active Warehouse Facility
-                    </label>
-                    <div className="relative">
-                        <select
-                            value={selectedWarehouseId}
-                            onChange={(e) => setSelectedWarehouseId(e.target.value)}
-                            className="w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 py-2.5 text-sm font-medium text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                        >
-                            {warehouses.map((w) => (
-                                <option key={w.id} value={w.id}>
-                                    {w.name} ({w.code})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
-                        Catalog Product
-                    </label>
-                    <div className="relative">
-                        <select
-                            value={selectedProductId}
-                            onChange={(e) => setSelectedProductId(e.target.value)}
-                            className="w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 py-2.5 text-sm font-medium text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                        >
-                            {products.map((p) => (
-                                <option key={p.id} value={p.id}>
-                                    {p.name} — SKU: {p.sku}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            {/* Live Stock Level Badge Card */}
-            <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm">
-                <div>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-blue-700">
-                        Dynamic Physical Stock Level
-                    </span>
-                    <div className="mt-2 flex items-baseline gap-3">
-                        <span className="text-4xl font-extrabold text-slate-900 font-mono">
-                            {loading ? '...' : (currentStock ?? 0)}
-                        </span>
-                        <span className="text-sm font-semibold text-slate-600">
-                            {selectedProduct?.unitOfMeasureName || selectedProduct?.unitOfMeasure || 'Units'} available in {selectedWarehouse?.name}
-                        </span>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setShowTransfer(!showTransfer)}
-                        className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 transition"
-                    >
-                        <Send className="h-3.5 w-3.5" />
-                        <span>Transfer to Another Warehouse</span>
-                    </button>
-                </div>
-            </div>
-
-            {/* Transfer Stock Form (Collapsible) */}
-            {showTransfer && (
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-                    <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                        <Send className="h-4 w-4 text-blue-600" />
-                        Inter-Warehouse Stock Transfer
-                    </h3>
-                    <form onSubmit={handleTransferStock} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                        <div>
-                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Destination Warehouse *</label>
-                            <select
-                                required
-                                value={destWarehouseId}
-                                onChange={(e) => setDestWarehouseId(e.target.value)}
-                                className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900"
-                            >
-                                <option value="">Select destination...</option>
-                                {warehouses
-                                    .filter((w) => w.id !== selectedWarehouseId)
-                                    .map((w) => (
-                                        <option key={w.id} value={w.id}>{w.name} ({w.code})</option>
-                                    ))}
-                            </select>
+            {/* PROMINENT FACILITY / WAREHOUSE SELECTOR */}
+            <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 p-5 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
+                    <div className="flex items-center gap-3.5">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-xs shrink-0">
+                            <Warehouse className="h-6 w-6" />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Quantity to Transfer *</label>
-                            <input
-                                type="number"
-                                min="1"
-                                max={currentStock || 1}
-                                value={transferQty}
-                                onChange={(e) => setTransferQty(e.target.value)}
-                                className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900"
-                            />
-                        </div>
-                        <div className="flex gap-2">
-                            <button
-                                type="submit"
-                                disabled={submittingTransfer}
-                                className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-blue-500 disabled:opacity-60"
-                            >
-                                {submittingTransfer ? 'Transferring...' : 'Execute Transfer'}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowTransfer(false)}
-                                className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
-
-            {/* Record New Movement Box with Supplier / Customer Selection */}
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                    <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                        {movementType === 'Purchase' && <ShoppingCart className="h-4 w-4 text-emerald-600" />}
-                        {movementType === 'Sale' && <ShoppingBag className="h-4 w-4 text-purple-600" />}
-                        {movementType.startsWith('Adjustment') && <Plus className="h-4 w-4 text-blue-600" />}
-
-                        <span>
-                            {movementType === 'Purchase' && 'Purchase Stock from Supplier'}
-                            {movementType === 'Sale' && 'Sell Stock to Customer'}
-                            {movementType.startsWith('Adjustment') && 'Manual Inventory Adjustment'}
-                        </span>
-                    </h3>
-
-                    {/* Mode pills */}
-                    <div className="flex rounded-lg bg-slate-100 p-0.5 text-xs font-medium">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setMovementType('Purchase');
-                                setReferenceType('Supplier');
-                            }}
-                            className={`rounded-md px-3 py-1 transition ${
-                                movementType === 'Purchase'
-                                    ? 'bg-white text-emerald-700 shadow-sm font-semibold'
-                                    : 'text-slate-600 hover:text-slate-900'
-                            }`}
-                        >
-                            Purchase (From Supplier)
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setMovementType('Sale');
-                                setReferenceType('Customer');
-                            }}
-                            className={`rounded-md px-3 py-1 transition ${
-                                movementType === 'Sale'
-                                    ? 'bg-white text-purple-700 shadow-sm font-semibold'
-                                    : 'text-slate-600 hover:text-slate-900'
-                            }`}
-                        >
-                            Sale (To Customer)
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setMovementType('AdjustmentOut');
-                                setReferenceType('Adjustment');
-                            }}
-                            className={`rounded-md px-3 py-1 transition ${
-                                movementType.startsWith('Adjustment')
-                                    ? 'bg-white text-slate-800 shadow-sm font-semibold'
-                                    : 'text-slate-600 hover:text-slate-900'
-                            }`}
-                        >
-                            Adjustment
-                        </button>
-                    </div>
-                </div>
-
-                <form onSubmit={handleRecordMovement} className="space-y-4">
-                    <div className={`grid grid-cols-1 sm:grid-cols-2 ${movementType.startsWith('Adjustment') ? 'lg:grid-cols-3 xl:grid-cols-5' : 'lg:grid-cols-4'} gap-4`}>
-                        {/* Target Product to Purchase / Sell / Move */}
-                        <div>
-                            <label className="block text-xs font-medium text-slate-600 mb-1.5">
-                                Product to {movementType === 'Purchase' ? 'Buy' : movementType === 'Sale' ? 'Sell' : 'Adjust'} *
-                            </label>
-                            <select
-                                required
-                                value={selectedProductId}
-                                onChange={(e) => setSelectedProductId(e.target.value)}
-                                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-900 font-medium outline-none focus:border-blue-500"
-                            >
-                                {products.map((p) => (
-                                    <option key={p.id} value={p.id}>
-                                        {p.name} ({p.sku})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Dynamic Actor Picker (Supplier for Purchase, Customer for Sale, Direction & Reason for Adjustment) */}
-                        {movementType === 'Purchase' ? (
-                            <div>
-                                <div className="flex items-center justify-between mb-1.5">
-                                    <label className="block text-xs font-medium text-slate-600">
-                                        Active Supplier *
-                                    </label>
-                                    {currentSelectedSupplier && (
-                                        <button
-                                            type="button"
-                                            onClick={() => openSupplierModal(currentSelectedSupplier)}
-                                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 hover:underline"
-                                            title="View supplier information popup"
-                                        >
-                                            <Eye className="h-3 w-3" />
-                                            <span>View Info</span>
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="flex gap-1.5">
-                                    <select
-                                        required
-                                        value={selectedSupplierId}
-                                        onChange={(e) => setSelectedSupplierId(e.target.value)}
-                                        className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-900 font-medium outline-none focus:border-blue-500"
-                                    >
-                                        {activeSuppliers.length === 0 ? (
-                                            <option value="">No active suppliers found</option>
-                                        ) : (
-                                            activeSuppliers.map((s) => (
-                                                <option key={s.id} value={s.id}>
-                                                    {s.name} {s.phone ? `(${s.phone})` : ''}
-                                                </option>
-                                            ))
-                                        )}
-                                    </select>
-                                    {currentSelectedSupplier && (
-                                        <button
-                                            type="button"
-                                            onClick={() => openSupplierModal(currentSelectedSupplier)}
-                                            className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-slate-600 hover:bg-slate-100 transition"
-                                            title="Inspect Supplier Details"
-                                        >
-                                            <Eye className="h-4 w-4 text-blue-600" />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        ) : movementType === 'Sale' ? (
-                            <div>
-                                <div className="flex items-center justify-between mb-1.5">
-                                    <label className="block text-xs font-medium text-slate-600">
-                                        Client / Customer *
-                                    </label>
-                                    {currentSelectedCustomer && (
-                                        <button
-                                            type="button"
-                                            onClick={() => openCustomerModal(currentSelectedCustomer)}
-                                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-600 hover:text-purple-800 hover:underline"
-                                            title="View customer information popup"
-                                        >
-                                            <Eye className="h-3 w-3" />
-                                            <span>View Info</span>
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="flex gap-1.5">
-                                    <select
-                                        required
-                                        value={selectedCustomerId}
-                                        onChange={(e) => setSelectedCustomerId(e.target.value)}
-                                        className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-900 font-medium outline-none focus:border-purple-500"
-                                    >
-                                        {activeCustomers.length === 0 ? (
-                                            <option value="">No active customers found</option>
-                                        ) : (
-                                            activeCustomers.map((c) => (
-                                                <option key={c.id} value={c.id}>
-                                                    {c.name} {c.phone ? `(${c.phone})` : ''}
-                                                </option>
-                                            ))
-                                        )}
-                                    </select>
-                                    {currentSelectedCustomer && (
-                                        <button
-                                            type="button"
-                                            onClick={() => openCustomerModal(currentSelectedCustomer)}
-                                            className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-slate-600 hover:bg-slate-100 transition"
-                                            title="Inspect Customer Details"
-                                        >
-                                            <Eye className="h-4 w-4 text-purple-600" />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                            <>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-600 mb-1.5">Adjustment Direction *</label>
-                                    <select
-                                        value={movementType}
-                                        onChange={(e) => setMovementType(e.target.value)}
-                                        className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-900 font-medium outline-none focus:border-blue-500"
-                                    >
-                                        <option value="AdjustmentOut">Adjustment Out (- Damaged / Discrepancy)</option>
-                                        <option value="AdjustmentIn">Adjustment In (+ Found / Surplus)</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-600 mb-1.5">Adjustment Reason *</label>
-                                    <select
-                                        value={selectedAdjustmentReasonId}
-                                        onChange={(e) => setSelectedAdjustmentReasonId(e.target.value)}
-                                        className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-900 font-medium outline-none focus:border-blue-500"
-                                    >
-                                        {adjustmentReasons.length === 0 ? (
-                                            <option value="">Loading reasons...</option>
-                                        ) : (
-                                            adjustmentReasons.map((r) => (
-                                                <option key={r.id} value={r.id}>
-                                                    {r.name}
-                                                </option>
-                                            ))
-                                        )}
-                                    </select>
-                                </div>
-                            </>
-                        )}
-
-                        {/* Quantity */}
-                        <div>
-                            <div className="flex items-center justify-between mb-1.5">
-                                <label className="block text-xs font-medium text-slate-600">
-                                    Quantity *
-                                </label>
-                                {(movementType === 'Sale' || movementType === 'AdjustmentOut') && (
-                                    <span className="text-[11px] text-slate-500">
-                                        Max: <strong>{currentStock ?? 0}</strong>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-100/70 px-2.5 py-0.5 rounded-md">
+                                    Step 1 • Target Facility
+                                </span>
+                                {selectedWarehouse?.code && (
+                                    <span className="font-mono text-xs font-bold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                                        {selectedWarehouse.code}
                                     </span>
                                 )}
                             </div>
-                            <input
-                                type="number"
-                                min="0.0001"
-                                max={(movementType === 'Sale' || movementType === 'AdjustmentOut') ? (currentStock ?? undefined) : undefined}
-                                step="any"
-                                required
-                                value={quantity}
-                                onChange={(e) => setQuantity(e.target.value)}
-                                className={`w-full rounded-lg border px-3.5 py-2 text-xs text-slate-900 outline-none ${
-                                    (movementType === 'Sale' || movementType === 'AdjustmentOut') && parseFloat(quantity) > (currentStock ?? 0)
-                                        ? 'border-red-500 ring-1 ring-red-500'
-                                        : 'border-slate-300 focus:border-blue-500'
-                                }`}
-                            />
+                            <h2 className="text-xl font-extrabold text-slate-900 mt-0.5">
+                                {selectedWarehouse?.name || 'Select Warehouse'}
+                            </h2>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {selectedWarehouse?.canAcceptAllCategories ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                                <span>Accepts All Categories</span>
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 border border-amber-200">
+                                <ShieldAlert className="h-3.5 w-3.5 text-amber-600" />
+                                <span>
+                                    {warehouseRestrictions?.permittedCategories?.length
+                                        ? `Restricted to ${warehouseRestrictions.permittedCategories.length} Categories`
+                                        : 'Category Restricted'}
+                                </span>
+                            </span>
+                        )}
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 border border-slate-200 shadow-2xs">
+                            <Package className="h-3.5 w-3.5 text-blue-600" />
+                            <span>{loadingEligibleProducts ? '...' : `${eligibleProducts.length} Eligible Products`}</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2.5 block">
+                        Choose Active Warehouse:
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {warehouses.map((w) => {
+                            const isSelected = selectedWarehouseId === w.id;
+                            return (
+                                <div
+                                    key={w.id}
+                                    onClick={() => setSelectedWarehouseId(w.id)}
+                                    className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                                        isSelected
+                                            ? 'border-blue-600 bg-white shadow-md ring-2 ring-blue-600/20'
+                                            : 'border-slate-200 bg-white/80 hover:border-blue-300 hover:bg-white hover:shadow-xs'
+                                    }`}
+                                >
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="flex items-start gap-3">
+                                            <div className={`flex h-11 w-11 items-center justify-center rounded-xl shrink-0 ${
+                                                isSelected ? 'bg-blue-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-600'
+                                            }`}>
+                                                <Warehouse className="h-5 w-5" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm font-bold text-slate-900">{w.name}</h3>
+                                                <div className="flex items-center gap-1.5 mt-1">
+                                                    <span className="font-mono text-[11px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                                                        {w.code}
+                                                    </span>
+                                                    {w.address && (
+                                                        <span className="text-[11px] text-slate-500 truncate max-w-[130px]" title={w.address}>
+                                                            {w.address}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 ${
+                                            isSelected ? 'bg-blue-600 text-white' : 'border border-slate-300'
+                                        }`}>
+                                            {isSelected && <Check className="h-3 w-3" />}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                                        <span className="text-slate-500 font-medium">Acceptance Policy:</span>
+                                        <span className={`font-semibold ${w.canAcceptAllCategories ? 'text-emerald-700' : 'text-amber-700'}`}>
+                                            {w.canAcceptAllCategories ? 'All Categories Permitted' : 'Restricted Categories'}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Action Card */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+                {/* Mode Selector Tabs */}
+                <div className="border-b border-slate-100 p-4 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+                    <div className="flex rounded-xl bg-slate-200/70 p-1 text-xs font-semibold">
+                        <button
+                            type="button"
+                            onClick={() => handleMovementTypeChange('Purchase')}
+                            className={`flex items-center gap-2 rounded-lg px-4 py-2 transition ${
+                                movementType === 'Purchase'
+                                    ? 'bg-white text-emerald-700 shadow-xs'
+                                    : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                        >
+                            <ShoppingCart className="h-4 w-4 text-emerald-600" />
+                            <span>Purchase (Inbound)</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleMovementTypeChange('Sale')}
+                            className={`flex items-center gap-2 rounded-lg px-4 py-2 transition ${
+                                movementType === 'Sale'
+                                    ? 'bg-white text-purple-700 shadow-xs'
+                                    : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                        >
+                            <ShoppingBag className="h-4 w-4 text-purple-600" />
+                            <span>Sale (Outbound)</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleMovementTypeChange('AdjustmentOut')}
+                            className={`flex items-center gap-2 rounded-lg px-4 py-2 transition ${
+                                movementType.startsWith('Adjustment')
+                                    ? 'bg-white text-blue-700 shadow-xs'
+                                    : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                        >
+                            <Plus className="h-4 w-4 text-blue-600" />
+                            <span>Stock Adjustment</span>
+                        </button>
+                    </div>
+
+                    {/* Active Facility Indicator */}
+                    <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
+                        <Warehouse className="h-4 w-4 text-blue-600 shrink-0" />
+                        <span className="text-xs font-semibold text-slate-500">Active Facility:</span>
+                        <span className="text-xs font-bold text-slate-900">{selectedWarehouse?.name}</span>
+                        <span className="font-mono text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                            {selectedWarehouse?.code}
+                        </span>
+                    </div>
+                </div>
+
+                <form onSubmit={handleRecordMovement} className="p-6 space-y-6">
+                    {/* SECTION 1: PRODUCT SELECTOR (SEARCHABLE CARD PICKER) */}
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                <Package className="h-4 w-4 text-blue-600" />
+                                <span>Target Product</span>
+                            </label>
+
+                            {selectedProduct && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsProductPickerOpen(true)}
+                                    className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800"
+                                >
+                                    <Search className="h-3 w-3" />
+                                    <span>Change Product</span>
+                                </button>
+                            )}
                         </div>
 
-                        {/* Reference / Invoice Identifier / Note */}
+                        {selectedProduct ? (
+                            /* Selected Product Card */
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-2xl border border-blue-200 bg-blue-50/30">
+                                <div className="flex items-center gap-3.5">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-xs shrink-0">
+                                        <Package className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-sm font-bold text-slate-900">{selectedProduct.name}</h3>
+                                            <span className="font-mono text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                                                SKU: {selectedProduct.sku || selectedProduct.SKU}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600">
+                                                <Tag className="h-2.5 w-2.5 text-blue-500" />
+                                                <span>{selectedProduct.categoryName || 'General'}</span>
+                                            </span>
+                                            {selectedProduct.brandName && (
+                                                <>
+                                                    <span className="text-slate-300">•</span>
+                                                    <span className="text-[11px] font-medium text-slate-600">
+                                                        Brand: <strong>{selectedProduct.brandName}</strong>
+                                                    </span>
+                                                </>
+                                            )}
+                                            <span className="text-slate-300">•</span>
+                                            <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-emerald-800 bg-white px-2 py-0.5 rounded-md border border-emerald-200 shadow-2xs">
+                                                <DollarSign className="h-3 w-3 text-emerald-600 -mr-0.5" />
+                                                <span>Avg Price: {formatMoneyK(selectedProductAvgPrice ?? selectedProduct.sellingPrice)}</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 self-end sm:self-center flex-wrap">
+                                    <div className="text-right">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                            {selectedProductAvgPrice != null ? 'Avg Supplier Price' : 'Estimated Price'}
+                                        </span>
+                                        <span className="text-base font-extrabold font-mono text-emerald-700" title={formatCurrency(selectedProductAvgPrice ?? selectedProduct.sellingPrice)}>
+                                            {formatMoneyK(selectedProductAvgPrice ?? selectedProduct.sellingPrice)}
+                                        </span>
+                                        {selectedProductAvgPrice != null && (
+                                            <span className="text-[10px] text-slate-400 block font-medium">
+                                                across authorized vendors
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="h-8 w-px bg-slate-200 hidden sm:block" />
+
+                                    <div className="text-right">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                            Stock in {selectedWarehouse?.name || 'Facility'}
+                                        </span>
+                                        <span className="text-lg font-extrabold font-mono text-slate-900">
+                                            {loadingHistory ? '...' : (currentStock ?? 0)} <span className="text-xs font-semibold text-slate-500">{selectedProduct.unitOfMeasureName || 'Units'}</span>
+                                        </span>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsProductPickerOpen(true)}
+                                        className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition"
+                                    >
+                                        Change
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            /* Unselected State Prompt */
+                            <button
+                                type="button"
+                                onClick={() => setIsProductPickerOpen(true)}
+                                className="w-full p-6 rounded-2xl border-2 border-dashed border-slate-300 hover:border-blue-400 bg-slate-50 hover:bg-blue-50/30 text-center transition flex flex-col items-center justify-center gap-2"
+                            >
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                                    <Search className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-slate-800">Click to Select a Product</p>
+                                    <p className="text-[11px] text-slate-500">Search by product name, SKU, category, or brand</p>
+                                </div>
+                            </button>
+                        )}
+                    </div>
+
+                    {/* SECTION 2: ACTOR (SUPPLIER CARDS FOR PURCHASE / CUSTOMER FOR SALE / REASONS FOR ADJUSTMENT) */}
+                    {movementType === 'Purchase' ? (
                         <div>
-                            <label className="block text-xs font-medium text-slate-600 mb-1.5">
-                                {movementType === 'Purchase' && 'Invoice / PO # (Optional)'}
-                                {movementType === 'Sale' && 'Sales Order / Receipt # (Optional)'}
-                                {movementType.startsWith('Adjustment') && 'Explanatory Note / Reason *'}
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                    <Truck className="h-4 w-4 text-emerald-600" />
+                                    <span>Select Authorized Supplier</span>
+                                </label>
+                                {eligibleSuppliers.length > 0 && (
+                                    <span className="text-xs text-slate-500 font-medium">
+                                        {eligibleSuppliers.length} supplier{eligibleSuppliers.length > 1 ? 's' : ''} authorized
+                                    </span>
+                                )}
+                            </div>
+
+                            {loadingEligibleSuppliers ? (
+                                <div className="p-6 text-center text-xs text-slate-400">
+                                    Checking authorized suppliers and ATP stock...
+                                </div>
+                            ) : eligibleSuppliers.length === 0 ? (
+                                <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-800 flex items-center gap-2.5">
+                                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+                                    <span>
+                                        No suppliers are authorized to supply <strong>{selectedProduct?.name}</strong>. A supplier must offer this product and match capability authorizations.
+                                    </span>
+                                </div>
+                            ) : (
+                                /* Visual Supplier Selection Cards */
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    {eligibleSuppliers.map((s) => {
+                                        const isSelected = selectedSupplierId === s.supplierId;
+                                        return (
+                                            <div
+                                                key={s.supplierId}
+                                                onClick={() => setSelectedSupplierId(s.supplierId)}
+                                                className={`relative p-3.5 rounded-2xl border cursor-pointer transition flex flex-col justify-between ${
+                                                    isSelected
+                                                        ? 'border-emerald-600 bg-emerald-50/40 shadow-xs ring-1 ring-emerald-600'
+                                                        : 'border-slate-200 bg-white hover:border-slate-300'
+                                                }`}
+                                            >
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <h4 className="text-xs font-bold text-slate-900">{s.supplierName}</h4>
+                                                            {s.isPreferred && (
+                                                                <span className="inline-flex items-center gap-0.5 rounded bg-emerald-100 text-emerald-800 px-1 py-0.2 text-[9px] font-bold">
+                                                                    <Star className="h-2 w-2 fill-emerald-700" /> Preferred
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-[11px] text-slate-500">
+                                                            Price: <strong title={formatCurrency(s.lastPurchasePrice ?? s.purchasePrice ?? 0)}>{formatMoneyK(s.lastPurchasePrice ?? s.purchasePrice ?? 0)}</strong> {s.leadTimeDays ? `• ${s.leadTimeDays}d lead` : ''}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 ${
+                                                        isSelected ? 'bg-emerald-600 text-white' : 'border border-slate-300'
+                                                    }`}>
+                                                        {isSelected && <Check className="h-2.5 w-2.5" />}
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                                                    <span className="text-slate-500 font-medium">Available to Promise:</span>
+                                                    <span className={`font-mono font-bold ${s.availableToPromise > 0 ? 'text-emerald-700' : 'text-slate-500'}`}>
+                                                        {s.availableToPromise} units
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    ) : movementType === 'Sale' ? (
+                        <div>
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5 mb-2">
+                                <Users className="h-4 w-4 text-purple-600" />
+                                <span>Client / Customer</span>
+                            </label>
+                            <div className="flex gap-2">
+                                <select
+                                    required
+                                    value={selectedCustomerId}
+                                    onChange={(e) => setSelectedCustomerId(e.target.value)}
+                                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs outline-none focus:border-purple-500"
+                                >
+                                    {activeCustomers.map((c) => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.name} {c.phone ? `(${c.phone})` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                {currentSelectedCustomer && (
+                                    <button
+                                        type="button"
+                                        onClick={() => openCustomerModal(currentSelectedCustomer)}
+                                        className="rounded-xl border border-slate-200 bg-slate-50 px-3 text-slate-600 hover:bg-slate-100 transition shrink-0"
+                                        title="View Customer Profile"
+                                    >
+                                        <Eye className="h-4 w-4 text-purple-600" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 block">
+                                    Adjustment Direction
+                                </label>
+                                <select
+                                    value={movementType}
+                                    onChange={(e) => setMovementType(e.target.value)}
+                                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 outline-none focus:border-blue-500"
+                                >
+                                    <option value="AdjustmentOut">- Damaged / Discrepancy (Deduct Stock)</option>
+                                    <option value="AdjustmentIn">+ Found / Surplus (Add Stock)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 block">
+                                    Reason
+                                </label>
+                                <select
+                                    value={selectedAdjustmentReasonId}
+                                    onChange={(e) => setSelectedAdjustmentReasonId(e.target.value)}
+                                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 outline-none focus:border-blue-500"
+                                >
+                                    {adjustmentReasons.map((r) => (
+                                        <option key={r.id} value={r.id}>{r.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* SECTION 3: QUANTITY & REFERENCE */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                        <div>
+                            <div className="flex items-center justify-between mb-1.5">
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                                    Quantity
+                                </label>
+                                {movementType === 'Purchase' && currentSelectedSupplier && (
+                                    <span className="text-[11px] font-semibold text-emerald-700">
+                                        Supplier ATP: {currentSelectedSupplier.availableToPromise}
+                                    </span>
+                                )}
+                                {(movementType === 'Sale' || movementType === 'AdjustmentOut') && (
+                                    <span className="text-[11px] font-semibold text-slate-600">
+                                        Available: {currentStock ?? 0}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setQuantity((prev) => Math.max(1, (parseInt(prev, 10) || 1) - 1))}
+                                    className="h-10 w-10 flex items-center justify-center rounded-xl border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold"
+                                    title="Decrease quantity by 1"
+                                >
+                                    -
+                                </button>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    required
+                                    value={quantity}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val === '') {
+                                            setQuantity('');
+                                        } else {
+                                            const intVal = parseInt(val, 10);
+                                            setQuantity(isNaN(intVal) ? '' : Math.max(1, intVal));
+                                        }
+                                    }}
+                                    className="flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-bold text-center text-slate-900 outline-none focus:border-blue-500 h-10 font-mono"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setQuantity((prev) => (parseInt(prev, 10) || 0) + 1)}
+                                    className="h-10 w-10 flex items-center justify-center rounded-xl border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold"
+                                    title="Increase quantity by 1"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 block">
+                                Reference # (PO / Invoice / Note)
                             </label>
                             <input
                                 type="text"
-                                required={movementType.startsWith('Adjustment')}
                                 placeholder={
                                     movementType === 'Purchase'
-                                        ? 'e.g. PO-2026-001'
+                                        ? 'e.g. PO-1024 or Invoice #'
                                         : movementType === 'Sale'
-                                        ? 'e.g. SO-8910'
-                                        : 'e.g. Apple are damaged, dropped box...'
+                                        ? 'e.g. SO-8910 or Receipt #'
+                                        : 'e.g. Water damage, count correction'
                                 }
                                 value={referenceId}
                                 onChange={(e) => setReferenceId(e.target.value)}
-                                className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 outline-none focus:border-blue-500"
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-medium text-slate-900 outline-none focus:border-blue-500 h-10"
                             />
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                        <div className="text-xs text-slate-500">
-                            {movementType === 'Purchase' && currentSelectedSupplier && (
-                                <span>
-                                    Purchasing for <strong className="text-slate-800">{selectedWarehouse?.name}</strong> from{' '}
-                                    <strong className="text-emerald-700">{currentSelectedSupplier.name}</strong>.
+                    {/* Financial Price & Revenue/Cost Summary Box */}
+                    {selectedProduct && (
+                        <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-r from-slate-50 to-blue-50/20 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="flex items-center gap-3.5">
+                                <div className={`flex h-11 w-11 items-center justify-center rounded-2xl shrink-0 shadow-2xs ${
+                                    movementType === 'Purchase'
+                                        ? 'bg-emerald-100 text-emerald-700'
+                                        : movementType === 'Sale'
+                                        ? 'bg-purple-100 text-purple-700'
+                                        : 'bg-blue-100 text-blue-700'
+                                }`}>
+                                    <DollarSign className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                                        {movementType === 'Purchase'
+                                            ? 'Unit Procurement Cost'
+                                            : movementType === 'Sale'
+                                            ? 'Unit Selling Price'
+                                            : 'Unit Valuation'}
+                                    </span>
+                                    <div className="text-sm font-bold text-slate-900 font-mono" title={formatCurrency(unitPrice)}>
+                                        {formatMoneyK(unitPrice)} <span className="text-[11px] font-normal text-slate-500">per {selectedProduct.unitOfMeasureName || 'unit'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                                    {movementType === 'Purchase'
+                                        ? 'Total Procurement Spend'
+                                        : movementType === 'Sale'
+                                        ? 'Total Expected Revenue'
+                                        : 'Total Stock Valuation'}
                                 </span>
-                            )}
-                            {movementType === 'Sale' && currentSelectedCustomer && (
-                                <span>
-                                    Selling from <strong className="text-slate-800">{selectedWarehouse?.name}</strong> to{' '}
-                                    <strong className="text-purple-700">{currentSelectedCustomer.name}</strong>.
-                                </span>
-                            )}
+                                <div
+                                    className={`text-2xl font-black font-mono tracking-tight ${
+                                        movementType === 'Sale'
+                                            ? 'text-purple-700'
+                                            : movementType === 'Purchase'
+                                            ? 'text-emerald-700'
+                                            : 'text-blue-700'
+                                    }`}
+                                    title={formatCurrency(estimatedTotalValue)}
+                                >
+                                    {formatMoneyK(estimatedTotalValue)}
+                                </div>
+                            </div>
                         </div>
+                    )}
+
+                    {/* Submit Bar */}
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
                         <button
                             type="submit"
-                            disabled={submittingMovement}
-                            className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition disabled:opacity-60 ${
+                            disabled={
+                                submittingMovement ||
+                                !selectedProductId ||
+                                (movementType === 'Purchase' && (!selectedSupplierId || eligibleSuppliers.length === 0)) ||
+                                (movementType === 'Sale' && !selectedCustomerId)
+                            }
+                            className={`inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-xs font-bold text-white shadow-xs transition disabled:opacity-50 disabled:cursor-not-allowed ${
                                 movementType === 'Purchase'
                                     ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20'
                                     : movementType === 'Sale'
@@ -782,9 +1162,9 @@ export const StockMovementsPage = () => {
                                     {movementType.startsWith('Adjustment') && <Plus className="h-4 w-4" />}
 
                                     <span>
-                                        {movementType === 'Purchase' && 'Confirm Purchase & Add Stock'}
-                                        {movementType === 'Sale' && 'Confirm Sale & Deduct Stock'}
-                                        {movementType.startsWith('Adjustment') && 'Commit Adjustment'}
+                                        {movementType === 'Purchase' && `Confirm Purchase of ${quantity || 0} Units • ${formatMoneyK(estimatedTotalValue)}`}
+                                        {movementType === 'Sale' && `Confirm Sale of ${quantity || 0} Units • ${formatMoneyK(estimatedTotalValue)}`}
+                                        {movementType.startsWith('Adjustment') && `Commit Stock Adjustment • ${formatMoneyK(estimatedTotalValue)}`}
                                     </span>
                                 </>
                             )}
@@ -793,27 +1173,118 @@ export const StockMovementsPage = () => {
                 </form>
             </div>
 
-            {/* Movement History Ledger Table */}
-            <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm overflow-hidden">
-                <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+            {/* Inter-Warehouse Transfer Collapsible Action */}
+            <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-slate-50">
+                <div className="flex items-center gap-3">
+                    <Send className="h-4 w-4 text-blue-600" />
                     <div>
-                        <h3 className="text-sm font-semibold text-slate-900">
-                            Append-Only Audit Ledger ({history.length} records)
+                        <h4 className="text-xs font-bold text-slate-900">Need to move stock between facilities?</h4>
+                        <p className="text-[11px] text-slate-500">Transfer {selectedProduct?.name || 'this product'} to another active warehouse facility.</p>
+                    </div>
+                </div>
+                <button
+                    onClick={() => setShowTransfer(!showTransfer)}
+                    disabled={!selectedProductId || (currentStock ?? 0) <= 0}
+                    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition disabled:opacity-50"
+                >
+                    {showTransfer ? 'Hide Transfer' : 'Transfer Stock'}
+                </button>
+            </div>
+
+            {showTransfer && (
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs animate-in fade-in">
+                    <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <Send className="h-4 w-4 text-blue-600" />
+                        <span>Transfer {selectedProduct?.name} to Another Warehouse</span>
+                    </h3>
+                    <form onSubmit={handleTransferStock} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Destination Warehouse *</label>
+                            <select
+                                required
+                                value={destWarehouseId}
+                                onChange={(e) => setDestWarehouseId(e.target.value)}
+                                className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-900 font-medium"
+                            >
+                                <option value="">Select destination...</option>
+                                {warehouses
+                                    .filter((w) => w.id !== selectedWarehouseId)
+                                    .map((w) => (
+                                        <option key={w.id} value={w.id}>{w.name} ({w.code})</option>
+                                    ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Quantity to Transfer (Units) *</label>
+                            <input
+                                type="number"
+                                min="1"
+                                max={Math.max(1, Math.floor(currentStock || 1))}
+                                step="1"
+                                value={transferQty}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === '') {
+                                        setTransferQty('');
+                                    } else {
+                                        const intVal = parseInt(val, 10);
+                                        setTransferQty(isNaN(intVal) ? '' : Math.max(1, intVal));
+                                    }
+                                }}
+                                className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs text-slate-900 font-medium font-mono"
+                            />
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                type="submit"
+                                disabled={submittingTransfer}
+                                className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow hover:bg-blue-500 disabled:opacity-60"
+                            >
+                                {submittingTransfer ? 'Transferring...' : 'Execute Transfer'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowTransfer(false)}
+                                className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* LEDGER AUDIT TABLE */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+                <div className="border-b border-slate-100 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-900">
+                            Movement History Ledger ({filteredHistory.length} records)
                         </h3>
                         <p className="text-xs text-slate-400">
-                            Complete historical ledger for {selectedProduct?.name} in {selectedWarehouse?.name}
+                            Immutable audit trail for {selectedProduct?.name || 'product'} in {selectedWarehouse?.name || 'facility'}
                         </p>
                     </div>
-                    <span className="text-xs text-slate-400">Newest first</span>
+
+                    <div className="relative">
+                        <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                            type="text"
+                            placeholder="Filter ledger records..."
+                            value={historySearch}
+                            onChange={(e) => setHistorySearch(e.target.value)}
+                            className="rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs text-slate-800 outline-none focus:border-blue-500 w-48 sm:w-64"
+                        />
+                    </div>
                 </div>
 
-                {loading ? (
+                {loadingHistory ? (
                     <div className="flex justify-center p-12">
                         <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
                     </div>
-                ) : history.length === 0 ? (
+                ) : filteredHistory.length === 0 ? (
                     <div className="p-12 text-center text-xs text-slate-400">
-                        No movement history recorded yet for this product in this warehouse.
+                        No movement records found for this product in this facility.
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -821,14 +1292,14 @@ export const StockMovementsPage = () => {
                             <thead className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                                 <tr>
                                     <th className="px-6 py-3.5">Timestamp</th>
-                                    <th className="px-6 py-3.5">Movement Type</th>
+                                    <th className="px-6 py-3.5">Type</th>
                                     <th className="px-6 py-3.5">Quantity</th>
-                                    <th className="px-6 py-3.5">Party (Supplier / Customer) / Reference</th>
-                                    <th className="px-6 py-3.5">Actor User</th>
+                                    <th className="px-6 py-3.5">Party / Reference</th>
+                                    <th className="px-6 py-3.5">Actor</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {history.map((item) => {
+                                {filteredHistory.map((item) => {
                                     const isPositive = ['Purchase', 'AdjustmentIn', 'TransferIn'].includes(item.type);
                                     const parsedSupplierRef = parseSupplierFromRef(item);
                                     const parsedCustomerRef = parseCustomerFromRef(item);
@@ -851,20 +1322,16 @@ export const StockMovementsPage = () => {
                                             <td className="px-6 py-3.5 font-bold font-mono text-slate-900">
                                                 {isPositive ? `+${item.quantity}` : `-${item.quantity}`}
                                             </td>
-
-                                            {/* Supplier / Customer / Reference Details */}
                                             <td className="px-6 py-3.5 text-slate-700">
-                                                {parsedSupplierRef?.supplier ? (
+                                                {parsedSupplierRef ? (
                                                     <div className="flex items-center gap-2">
                                                         <button
                                                             type="button"
-                                                            onClick={() => openSupplierModal(parsedSupplierRef.supplier)}
-                                                            className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50/70 px-2.5 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 hover:border-blue-300"
-                                                            title="Click to view supplier popup info"
+                                                            onClick={() => openSupplierModal(parsedSupplierRef.supplierId)}
+                                                            className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-2 py-0.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition"
                                                         >
-                                                            <Truck className="h-3.5 w-3.5 text-blue-600" />
-                                                            <span>Supplier: {parsedSupplierRef.supplier.name}</span>
-                                                            <Eye className="h-3 w-3 text-blue-500 ml-0.5" />
+                                                            <Truck className="h-3 w-3 text-emerald-600" />
+                                                            <span>{parsedSupplierRef.supplierName}</span>
                                                         </button>
                                                         {parsedSupplierRef.invoiceNumber && (
                                                             <span className="font-mono text-[11px] text-slate-500">
@@ -877,12 +1344,10 @@ export const StockMovementsPage = () => {
                                                         <button
                                                             type="button"
                                                             onClick={() => openCustomerModal(parsedCustomerRef.customer)}
-                                                            className="inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50/70 px-2.5 py-1 text-xs font-semibold text-purple-700 transition hover:bg-purple-100 hover:border-purple-300"
-                                                            title="Click to view customer popup info"
+                                                            className="inline-flex items-center gap-1 rounded-lg border border-purple-200 bg-purple-50/70 px-2 py-0.5 text-xs font-semibold text-purple-800 hover:bg-purple-100 transition"
                                                         >
-                                                            <Users className="h-3.5 w-3.5 text-purple-600" />
-                                                            <span>Customer: {parsedCustomerRef.customer.name}</span>
-                                                            <Eye className="h-3 w-3 text-purple-500 ml-0.5" />
+                                                            <Users className="h-3 w-3 text-purple-600" />
+                                                            <span>{parsedCustomerRef.customer.name}</span>
                                                         </button>
                                                         {parsedCustomerRef.salesOrderNumber && (
                                                             <span className="font-mono text-[11px] text-slate-500">
@@ -891,22 +1356,11 @@ export const StockMovementsPage = () => {
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <div className="flex flex-col gap-0.5">
-                                                        {item.adjustmentReasonName && (
-                                                            <span className="inline-flex items-center gap-1.5 font-semibold text-slate-800 text-xs">
-                                                                <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
-                                                                <span>{item.adjustmentReasonName}</span>
-                                                            </span>
-                                                        )}
-                                                        <span className="text-slate-600 text-xs">
-                                                            {item.referenceId
-                                                                ? (item.adjustmentReasonName ? `Note: ${item.referenceId}` : (item.referenceType ? `${item.referenceType}: ${item.referenceId}` : item.referenceId))
-                                                                : (!item.adjustmentReasonName ? '-' : '')}
-                                                        </span>
-                                                    </div>
+                                                    <span className="text-slate-600">
+                                                        {item.adjustmentReasonName || item.referenceId || '-'}
+                                                    </span>
                                                 )}
                                             </td>
-
                                             <td className="px-6 py-3.5 text-slate-400 font-mono text-[11px]">
                                                 {item.createdByUserId ? `${item.createdByUserId.substring(0, 8)}...` : 'System'}
                                             </td>
@@ -919,13 +1373,173 @@ export const StockMovementsPage = () => {
                 )}
             </div>
 
-            {/* Supplier Info Popup Modal */}
+            {/* SEARCHABLE PRODUCT PICKER MODAL */}
+            {isProductPickerOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+                    <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-150">
+                        {/* Modal Header */}
+                        <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                                    <Package className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-bold text-slate-900">Select Compatible Product</h3>
+                                    <p className="text-[11px] text-slate-500">Showing products permitted for {selectedWarehouse?.name}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsProductPickerOpen(false)}
+                                className="h-8 w-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+
+                        {/* Search & Category Filter Bar */}
+                        <div className="p-4 border-b border-slate-100 space-y-3 bg-slate-50/60">
+                            <div className="relative">
+                                <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    placeholder="Search by product name, SKU, category, or brand..."
+                                    value={productSearch}
+                                    onChange={(e) => setProductSearch(e.target.value)}
+                                    className="w-full rounded-xl border border-slate-300 bg-white pl-10 pr-10 py-2.5 text-xs text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                                />
+                                {productSearch && (
+                                    <button
+                                        onClick={() => setProductSearch('')}
+                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    >
+                                        <X className="h-3.5 w-3.5" />
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Category Filter Pills */}
+                            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                                {availableCategories.map((cat) => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setProductCategoryFilter(cat)}
+                                        className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+                                            productCategoryFilter === cat
+                                                ? 'bg-blue-600 text-white shadow-2xs'
+                                                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                                        }`}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Product Grid / List */}
+                        <div className="p-4 overflow-y-auto flex-1 space-y-2">
+                            {filteredProducts.length === 0 ? (
+                                <div className="p-12 text-center text-xs text-slate-400">
+                                    No products found matching "{productSearch}".
+                                </div>
+                            ) : (
+                                filteredProducts.map((p) => {
+                                    const isSelected = selectedProductId === p.id;
+                                    const pricing = pricingIntelligenceMap[p.id];
+                                    const avgPrice = pricing?.avgPrice;
+                                    const supplierCount = pricing?.supplierCount || 0;
+                                    const displayPrice = avgPrice != null ? avgPrice : (p.sellingPrice || 0);
+
+                                    return (
+                                        <div
+                                            key={p.id}
+                                            onClick={() => {
+                                                setSelectedProductId(p.id);
+                                                setIsProductPickerOpen(false);
+                                            }}
+                                            className={`p-3.5 rounded-xl border cursor-pointer transition flex items-center justify-between gap-3 ${
+                                                isSelected
+                                                    ? 'border-blue-600 bg-blue-50/50 shadow-xs ring-1 ring-blue-600'
+                                                    : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`flex h-10 w-10 items-center justify-center rounded-xl shrink-0 ${
+                                                    isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
+                                                }`}>
+                                                    <Package className="h-5 w-5" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-xs font-bold text-slate-900">{p.name}</h4>
+                                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                        <span className="font-mono text-[11px] text-slate-500 font-semibold">
+                                                            SKU: {p.sku || p.SKU}
+                                                        </span>
+                                                        <span className="text-slate-300">•</span>
+                                                        <span className="text-[11px] text-slate-600 font-medium">
+                                                            {p.categoryName || 'General'}
+                                                        </span>
+                                                        {p.brandName && (
+                                                            <>
+                                                                <span className="text-slate-300">•</span>
+                                                                <span className="text-[11px] text-slate-500">
+                                                                    Brand: {p.brandName}
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                        <span className="text-slate-300">•</span>
+                                                        <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                                            {avgPrice != null ? `Avg: ${formatMoneyK(avgPrice)}` : formatMoneyK(p.sellingPrice)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-4 shrink-0">
+                                                <div className="text-right">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                                        {avgPrice != null ? 'Avg Price' : 'Selling Price'}
+                                                    </span>
+                                                    <span className="text-base font-extrabold text-slate-900 font-mono block text-emerald-700" title={formatCurrency(displayPrice)}>
+                                                        {formatMoneyK(displayPrice)}
+                                                    </span>
+                                                    <span className="text-[10px] text-slate-400 block font-medium">
+                                                        {avgPrice != null && supplierCount > 0 ? `${supplierCount} supplier${supplierCount > 1 ? 's' : ''}` : `per ${p.unitOfMeasureName || 'unit'}`}
+                                                    </span>
+                                                </div>
+                                                <div className={`h-5 w-5 rounded-full flex items-center justify-center ${
+                                                    isSelected ? 'bg-blue-600 text-white' : 'border border-slate-300'
+                                                }`}>
+                                                    {isSelected && <Check className="h-3 w-3" />}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+                            <span>{filteredProducts.length} products listed</span>
+                            <button
+                                onClick={() => setIsProductPickerOpen(false)}
+                                className="px-4 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Supplier Info Modal */}
             {supplierModalOpen && selectedSupplierForModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
                     <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
                         <div className="flex items-start justify-between border-b border-slate-100 pb-4">
                             <div className="flex items-center gap-3">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 border border-blue-100">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100">
                                     <Truck className="h-6 w-6" />
                                 </div>
                                 <div>
@@ -937,65 +1551,28 @@ export const StockMovementsPage = () => {
                                     </span>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setSupplierModalOpen(false)}
-                                className="text-slate-400 hover:text-slate-600 transition"
-                            >
+                            <button onClick={() => setSupplierModalOpen(false)} className="text-slate-400 hover:text-slate-600">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
-                        <div className="py-5 space-y-3.5 text-xs text-slate-600">
+                        <div className="py-4 space-y-3 text-xs text-slate-600">
                             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-                                <span className="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">
-                                    Supplier ID
-                                </span>
-                                <span className="font-mono text-slate-800 text-[11px]">
-                                    {selectedSupplierForModal.id}
-                                </span>
+                                <span className="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Supplier Code</span>
+                                <span className="font-mono text-slate-800 text-[11px]">{selectedSupplierForModal.code || selectedSupplierForModal.id}</span>
                             </div>
-
                             <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition">
                                 <Mail className="h-4 w-4 text-slate-400 shrink-0" />
                                 <div className="flex-1">
-                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Email Address</p>
-                                    {selectedSupplierForModal.email ? (
-                                        <a
-                                            href={`mailto:${selectedSupplierForModal.email}`}
-                                            className="text-blue-600 hover:underline font-medium text-xs"
-                                        >
-                                            {selectedSupplierForModal.email}
-                                        </a>
-                                    ) : (
-                                        <span className="text-slate-400">Not provided</span>
-                                    )}
+                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Email</p>
+                                    <span className="text-slate-800 font-medium">{selectedSupplierForModal.email || 'Not provided'}</span>
                                 </div>
                             </div>
-
                             <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition">
                                 <Phone className="h-4 w-4 text-slate-400 shrink-0" />
                                 <div className="flex-1">
-                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Phone Contact</p>
-                                    {selectedSupplierForModal.phone ? (
-                                        <a
-                                            href={`tel:${selectedSupplierForModal.phone}`}
-                                            className="text-slate-800 font-medium text-xs"
-                                        >
-                                            {selectedSupplierForModal.phone}
-                                        </a>
-                                    ) : (
-                                        <span className="text-slate-400">Not provided</span>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition">
-                                <Calendar className="h-4 w-4 text-slate-400 shrink-0" />
-                                <div className="flex-1">
-                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Joined Supplier Since</p>
-                                    <span className="text-slate-800 font-medium text-xs">
-                                        {new Date(selectedSupplierForModal.createdAt).toLocaleDateString()}
-                                    </span>
+                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Phone</p>
+                                    <span className="text-slate-800 font-medium">{selectedSupplierForModal.phone || 'Not provided'}</span>
                                 </div>
                             </div>
                         </div>
@@ -1005,18 +1582,17 @@ export const StockMovementsPage = () => {
                                 type="button"
                                 onClick={() => {
                                     setSupplierModalOpen(false);
-                                    navigate('/suppliers');
+                                    navigate(`/suppliers/${selectedSupplierForModal.id}`);
                                 }}
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800"
                             >
                                 <ExternalLink className="h-3.5 w-3.5" />
-                                <span>Go to Suppliers Directory</span>
+                                <span>View Full Profile</span>
                             </button>
-
                             <button
                                 type="button"
                                 onClick={() => setSupplierModalOpen(false)}
-                                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                             >
                                 Close
                             </button>
@@ -1025,9 +1601,9 @@ export const StockMovementsPage = () => {
                 </div>
             )}
 
-            {/* Customer Info Popup Modal */}
+            {/* Customer Info Modal */}
             {customerModalOpen && selectedCustomerForModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
                     <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
                         <div className="flex items-start justify-between border-b border-slate-100 pb-4">
                             <div className="flex items-center gap-3">
@@ -1035,73 +1611,34 @@ export const StockMovementsPage = () => {
                                     <Users className="h-6 w-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-base font-bold text-slate-900">
-                                        {selectedCustomerForModal.name}
-                                    </h3>
+                                    <h3 className="text-base font-bold text-slate-900">{selectedCustomerForModal.name}</h3>
                                     <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200 mt-1">
                                         {selectedCustomerForModal.isActive ? 'Active Client' : 'Inactive'}
                                     </span>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setCustomerModalOpen(false)}
-                                className="text-slate-400 hover:text-slate-600 transition"
-                            >
+                            <button onClick={() => setCustomerModalOpen(false)} className="text-slate-400 hover:text-slate-600">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
-                        <div className="py-5 space-y-3.5 text-xs text-slate-600">
+                        <div className="py-4 space-y-3 text-xs text-slate-600">
                             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-                                <span className="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">
-                                    Customer ID
-                                </span>
-                                <span className="font-mono text-slate-800 text-[11px]">
-                                    {selectedCustomerForModal.id}
-                                </span>
+                                <span className="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Customer ID</span>
+                                <span className="font-mono text-slate-800 text-[11px]">{selectedCustomerForModal.id}</span>
                             </div>
-
                             <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition">
                                 <Mail className="h-4 w-4 text-slate-400 shrink-0" />
                                 <div className="flex-1">
-                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Email Address</p>
-                                    {selectedCustomerForModal.email ? (
-                                        <a
-                                            href={`mailto:${selectedCustomerForModal.email}`}
-                                            className="text-purple-600 hover:underline font-medium text-xs"
-                                        >
-                                            {selectedCustomerForModal.email}
-                                        </a>
-                                    ) : (
-                                        <span className="text-slate-400">Not provided</span>
-                                    )}
+                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Email</p>
+                                    <span className="text-slate-800 font-medium">{selectedCustomerForModal.email || 'Not provided'}</span>
                                 </div>
                             </div>
-
                             <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition">
                                 <Phone className="h-4 w-4 text-slate-400 shrink-0" />
                                 <div className="flex-1">
-                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Phone Contact</p>
-                                    {selectedCustomerForModal.phone ? (
-                                        <a
-                                            href={`tel:${selectedCustomerForModal.phone}`}
-                                            className="text-slate-800 font-medium text-xs"
-                                        >
-                                            {selectedCustomerForModal.phone}
-                                        </a>
-                                    ) : (
-                                        <span className="text-slate-400">Not provided</span>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition">
-                                <Calendar className="h-4 w-4 text-slate-400 shrink-0" />
-                                <div className="flex-1">
-                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Customer Since</p>
-                                    <span className="text-slate-800 font-medium text-xs">
-                                        {new Date(selectedCustomerForModal.createdAt).toLocaleDateString()}
-                                    </span>
+                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Phone</p>
+                                    <span className="text-slate-800 font-medium">{selectedCustomerForModal.phone || 'Not provided'}</span>
                                 </div>
                             </div>
                         </div>
@@ -1113,16 +1650,15 @@ export const StockMovementsPage = () => {
                                     setCustomerModalOpen(false);
                                     navigate('/customers');
                                 }}
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-600 hover:text-purple-800 hover:underline"
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-600 hover:text-purple-800"
                             >
                                 <ExternalLink className="h-3.5 w-3.5" />
-                                <span>Go to Customers Directory</span>
+                                <span>View Client Directory</span>
                             </button>
-
                             <button
                                 type="button"
                                 onClick={() => setCustomerModalOpen(false)}
-                                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                             >
                                 Close
                             </button>

@@ -8,7 +8,10 @@ import {
     Truck,
     Users,
     ShieldCheck,
-    LogOut
+    LogOut,
+    ShoppingBag,
+    ShoppingCart,
+    Link2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -20,7 +23,10 @@ export const Sidebar = () => {
         { name: 'Warehouses', href: '/warehouses', icon: Warehouse },
         { name: 'Products & Catalog', href: '/products', icon: Package },
         { name: 'Stock Movements', href: '/stock-movements', icon: ArrowLeftRight },
+        { name: 'Purchase Orders', href: '/purchase-orders', icon: ShoppingBag },
         { name: 'Suppliers', href: '/suppliers', icon: Truck },
+        { name: 'Supplier Products', href: '/supplier-products', icon: Link2 },
+        { name: 'Sales Orders', href: '/sales-orders', icon: ShoppingCart },
         { name: 'Customers', href: '/customers', icon: Users },
     ];
 

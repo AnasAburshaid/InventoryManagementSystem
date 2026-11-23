@@ -1,4 +1,5 @@
-﻿using InventoryManagementSystem.DataAccess.Enums;
+using System;
+using InventoryManagementSystem.DataAccess.Enums;
 
 namespace InventoryManagementSystem.Business.StockMovements.DTOs;
 
@@ -9,6 +10,7 @@ public class RecordMovementRequest
     public decimal Quantity { get; set; }
     public StockMovementType Type { get; set; }
     public Guid? AdjustmentReasonId { get; set; }
+    public Guid? SupplierId { get; set; }
     public string? ReferenceType { get; set; }
     public string? ReferenceId { get; set; }
 }

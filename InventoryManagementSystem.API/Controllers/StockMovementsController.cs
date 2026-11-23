@@ -64,6 +64,18 @@ public class StockMovementsController : ControllerBase
         if (result.Status == StockMovementOperationStatus.WarehouseNotFoundOrInactive)
             return NotFound(new { message = "Warehouse was not found or is inactive." });
 
+        if (result.Status == StockMovementOperationStatus.CategoryNotAllowedInWarehouse)
+            return BadRequest(new { message = "The warehouse is not authorized to accept products belonging to this category." });
+
+        if (result.Status == StockMovementOperationStatus.SupplierNotFoundOrInactive)
+            return BadRequest(new { message = "The selected supplier was not found or is inactive." });
+
+        if (result.Status == StockMovementOperationStatus.ProductNotOfferedBySupplier)
+            return BadRequest(new { message = "The selected supplier is not authorized to supply this product under its capability matrix or product catalog." });
+
+        if (result.Status == StockMovementOperationStatus.InsufficientSupplierStock)
+            return BadRequest(new { message = "Insufficient available supplier stock for this purchase." });
+
         if (result.Status == StockMovementOperationStatus.AdjustmentReasonRequired)
             return BadRequest(new { message = "An adjustment reason or explanatory note is required for this adjustment." });
 
@@ -79,8 +91,6 @@ public class StockMovementsController : ControllerBase
         if (result.Status != StockMovementOperationStatus.Success || result.Data is null)
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
 
-      
-
         return StatusCode(StatusCodes.Status201Created, result.Data);
     }
 
@@ -93,7 +103,6 @@ public class StockMovementsController : ControllerBase
         decimal currentStock = await _stockMovementService.GetCurrentStockAsync(warehouseId, productId);
         return Ok(currentStock);
     }
-
 
     [Authorize(Policy = "RequireWarehouseSupervisor")]
     [HttpPost("transfers")]
@@ -111,11 +120,14 @@ public class StockMovementsController : ControllerBase
         if (result.Status == StockMovementOperationStatus.SameSourceAndDestination)
             return BadRequest(new { message = "Source and destination warehouses cannot be the same." });
 
-        if (result.Status == StockMovementOperationStatus.InsufficientStock)
-            return BadRequest(new { message = "Insufficient physical stock in the source warehouse to complete this transfer." });
-
         if (result.Status == StockMovementOperationStatus.DestinationWarehouseNotFoundOrInactive)
             return NotFound(new { message = "Destination warehouse was not found or is inactive." });
+
+        if (result.Status == StockMovementOperationStatus.CategoryNotAllowedInWarehouse)
+            return BadRequest(new { message = "The destination warehouse is not authorized to accept products belonging to this category." });
+
+        if (result.Status == StockMovementOperationStatus.InsufficientStock)
+            return BadRequest(new { message = "Insufficient physical stock in the source warehouse to complete this transfer." });
 
         if (result.Status == StockMovementOperationStatus.UnauthorizedActor)
             return StatusCode(StatusCodes.Status403Forbidden, new { message = "User identity could not be verified." });

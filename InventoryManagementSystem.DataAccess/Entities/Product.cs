@@ -52,4 +52,13 @@ public partial class Product
 
     [InverseProperty("Product")]
     public virtual ICollection<SupplierProduct> SupplierProducts { get; set; } = new List<SupplierProduct>();
+
+    [InverseProperty("Product")]
+    public virtual ICollection<PurchaseOrderLine> PurchaseOrderLines { get; set; } = new List<PurchaseOrderLine>();
+
+    [InverseProperty("Product")]
+    public virtual ICollection<SalesOrderLine> SalesOrderLines { get; set; } = new List<SalesOrderLine>();
+
+    [InverseProperty("Product")]
+    public virtual ICollection<SupplierStockMovement> SupplierStockMovements { get; set; } = new List<SupplierStockMovement>();
 }

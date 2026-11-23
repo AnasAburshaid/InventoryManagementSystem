@@ -1,4 +1,6 @@
-﻿namespace InventoryManagementSystem.Business.Warehouses.DTOs;
+using System;
+
+namespace InventoryManagementSystem.Business.Warehouses.DTOs;
 
 public class WarehouseResponse
 {
@@ -13,4 +15,6 @@ public class WarehouseResponse
     public DateTime CreatedAt { get; set; }
 
     public bool IsActive { get; set; }
+
+    public bool CanAcceptAllCategories { get; set; }
 }
