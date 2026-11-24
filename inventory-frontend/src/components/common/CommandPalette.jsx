@@ -47,6 +47,15 @@ export const CommandPalette = ({ isOpen, onClose, onOpenShortcuts }) => {
         },
         {
             category: 'Navigation',
+            name: 'AI Inventory Assistant',
+            description: 'Ask natural-language questions about stock, reorder levels, orders, and audits',
+            icon: Sparkles,
+            color: 'text-indigo-600 bg-indigo-50',
+            shortcut: 'G A',
+            action: () => navigate('/assistant')
+        },
+        {
+            category: 'Navigation',
             name: 'Stock Counting & Reconciliation',
             description: 'Run physical cycle counts, record shelf quantities, and reconcile discrepancies',
             icon: ClipboardCheck,

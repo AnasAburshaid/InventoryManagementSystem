@@ -42,6 +42,15 @@ export const Sidebar = ({ onOpenCommandPalette, onOpenShortcuts }) => {
                     badge: 'Hub',
                     badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
                     shortcut: 'G D'
+                },
+                {
+                    name: 'AI Assistant',
+                    subtext: 'Natural language intelligence',
+                    href: '/assistant',
+                    icon: Sparkles,
+                    badge: 'AI',
+                    badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+                    shortcut: 'G A'
                 }
             ]
         },

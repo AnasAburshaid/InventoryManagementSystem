@@ -42,3 +42,6 @@ dist/
 # Python
 __pycache__/
 *.pyc
+
+# Local AI planning
+AI_PLAN.md

@@ -1,5 +1,7 @@
 using InventoryManagementSystem.API.Authorization;
 using InventoryManagementSystem.Business.Analytics.Services;
+using InventoryManagementSystem.Business.Assistant.Services;
+using InventoryManagementSystem.Business.Assistant.Tools;
 using InventoryManagementSystem.Business.AuditLogs.Services;
 using InventoryManagementSystem.Business.Authentication;
 using InventoryManagementSystem.Business.Authentication.Services;
@@ -126,6 +128,21 @@ builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IStockCountService, StockCountService>();
 builder.Services.AddScoped<IReplenishmentService, ReplenishmentService>();
+builder.Services.AddHttpClient<IOpenRouterClient, OpenRouterClient>(client =>
+{
+    client.BaseAddress = new Uri("https://openrouter.ai/api/v1/");
+    client.Timeout = TimeSpan.FromSeconds(75);
+});
+builder.Services.AddScoped<IAssistantTool, GetProductsTool>();
+builder.Services.AddScoped<IAssistantTool, GetWarehouseInventoryTool>();
+builder.Services.AddScoped<IAssistantTool, GetLowStockAndReplenishmentTool>();
+builder.Services.AddScoped<IAssistantTool, GetStockMovementsTool>();
+builder.Services.AddScoped<IAssistantTool, GetPurchaseOrdersTool>();
+builder.Services.AddScoped<IAssistantTool, GetSalesOrdersTool>();
+builder.Services.AddScoped<IAssistantTool, GetStockCountsTool>();
+builder.Services.AddScoped<IAssistantTool, GetAuditLogsTool>();
+builder.Services.AddScoped<IAssistantToolRegistry, AssistantToolRegistry>();
+builder.Services.AddScoped<IAssistantService, AssistantService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthorizationHandler, WarehouseRoleHandler>();
 

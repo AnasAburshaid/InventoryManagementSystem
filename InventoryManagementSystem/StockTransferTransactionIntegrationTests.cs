@@ -86,7 +86,7 @@ public class StockTransferTransactionIntegrationTests : IAsyncLifetime
         {
             Id = sourceWhId,
             Name = "Source Facility",
-            Code = "SRC-" + Guid.NewGuid().ToString("N")[..4],
+            Code = "SRC-" + Guid.NewGuid().ToString("N")[..8],
             Address = "100 Source Way",
             IsActive = true,
             CanAcceptAllCategories = true
@@ -97,7 +97,7 @@ public class StockTransferTransactionIntegrationTests : IAsyncLifetime
         {
             Id = destWhId,
             Name = "Dest Facility",
-            Code = "DST-" + Guid.NewGuid().ToString("N")[..4],
+            Code = "DST-" + Guid.NewGuid().ToString("N")[..8],
             Address = "200 Dest Way",
             IsActive = true,
             CanAcceptAllCategories = true

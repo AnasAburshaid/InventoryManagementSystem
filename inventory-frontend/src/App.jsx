@@ -19,6 +19,7 @@ import SalesOrdersPage from './pages/SalesOrdersPage';
 import StockCountsPage from './pages/StockCountsPage';
 import ReplenishmentPage from './pages/ReplenishmentPage';
 import AuditLogsPage from './pages/AuditLogsPage';
+import AssistantPage from './pages/AssistantPage';
 
 function App() {
     return (
@@ -166,6 +167,16 @@ function App() {
                             <ProtectedRoute>
                                 <Layout>
                                     <AuditLogsPage />
+                                </Layout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/assistant"
+                        element={
+                            <ProtectedRoute>
+                                <Layout>
+                                    <AssistantPage />
                                 </Layout>
                             </ProtectedRoute>
                         }

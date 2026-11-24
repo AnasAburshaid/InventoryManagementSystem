@@ -116,12 +116,12 @@ export const Layout = ({ children }) => {
             />
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col pl-68 transition-all duration-300">
+            <div className="flex-1 flex flex-col pl-68 transition-all duration-300 min-w-0">
                 <Navbar
                     onOpenCommandPalette={() => setCommandPaletteOpen(true)}
                     onOpenShortcuts={() => setShortcutsModalOpen(true)}
                 />
-                <main className="flex-1 p-8 max-w-7xl w-full mx-auto">
+                <main className="flex-1 p-8 max-w-7xl w-full mx-auto min-w-0">
                     {children}
                 </main>
             </div>
