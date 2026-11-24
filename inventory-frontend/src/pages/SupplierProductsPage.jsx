@@ -333,15 +333,17 @@ export const SupplierProductsPage = () => {
             </div>
 
             {/* Context & Purpose Guide */}
-            <div className="rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50/60 via-slate-50 to-indigo-50/40 p-4 shadow-2xs">
-                <div className="flex items-start gap-3">
-                    <div className="mt-0.5 rounded-lg bg-blue-100 p-1.5 text-blue-700 shrink-0">
+            <div className="rounded-2xl border border-blue-200/80 bg-blue-50/60 dark:bg-[#1E293B] dark:border-[#334155] p-4.5 shadow-2xs transition-all">
+                <div className="flex items-start gap-3.5">
+                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
                         <Info className="h-4 w-4" />
                     </div>
-                    <div className="text-xs text-slate-600 leading-relaxed">
-                        <span className="font-semibold text-slate-900">Understanding Vendor Sourcing Agreements:</span>
-                        <p className="mt-0.5">
-                            Suppliers can only supply products that comply with their authorized categories and brands. Each link below defines commercial terms (negotiated purchasing cost, expected lead time, and supplier-specific code). Marking a vendor as <strong className="text-amber-800 font-semibold">Preferred</strong> prioritizes them automatically in procurement orders and inventory replenishment.
+                    <div className="min-w-0 flex-1">
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-[#F1F5F9] flex items-center gap-1.5">
+                            Understanding Vendor Sourcing Agreements
+                        </h4>
+                        <p className="mt-1 text-xs text-slate-600 dark:text-[#CBD5E1] leading-relaxed">
+                            Suppliers can only supply products that comply with their authorized categories and brands. Each link below defines commercial terms (negotiated purchasing cost, expected lead time, and supplier-specific code). Marking a vendor as <span className="inline-flex items-center gap-1 font-bold text-amber-800 dark:text-amber-300 bg-amber-100/90 dark:bg-amber-950/60 px-2 py-0.5 rounded-md text-[11px] border border-amber-300/80 dark:border-amber-700/60 shadow-2xs mx-1">★ Preferred</span> prioritizes them automatically in procurement orders and inventory replenishment.
                         </p>
                     </div>
                 </div>

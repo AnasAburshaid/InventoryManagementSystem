@@ -190,7 +190,9 @@ export const SuppliersPage = () => {
                             </div>
 
                             <div className="mt-5 border-t border-slate-100 pt-4 flex items-center justify-between text-xs">
-                                <span className="font-mono text-[11px] text-slate-400">ID: {sup.id.substring(0, 8)}...</span>
+                                <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                                    Verified Vendor
+                                </span>
                                 <Link
                                     to={`/suppliers/${sup.id}`}
                                     className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"

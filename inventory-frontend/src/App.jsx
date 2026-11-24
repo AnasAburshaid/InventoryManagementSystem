@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Layout from './components/layout/Layout';
 import LoginPage from './pages/LoginPage';
@@ -15,12 +16,16 @@ import CustomersPage from './pages/CustomersPage';
 import SupplierProductsPage from './pages/SupplierProductsPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
 import SalesOrdersPage from './pages/SalesOrdersPage';
+import StockCountsPage from './pages/StockCountsPage';
+import ReplenishmentPage from './pages/ReplenishmentPage';
+import AuditLogsPage from './pages/AuditLogsPage';
 
 function App() {
     return (
-        <AuthProvider>
-            <BrowserRouter>
-                <Routes>
+        <ThemeProvider>
+            <AuthProvider>
+                <BrowserRouter>
+                    <Routes>
                     {/* Public Login Route */}
                     <Route path="/login" element={<LoginPage />} />
 
@@ -135,12 +140,43 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+                    <Route
+                        path="/stock-counts"
+                        element={
+                            <ProtectedRoute>
+                                <Layout>
+                                    <StockCountsPage />
+                                </Layout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/replenishment"
+                        element={
+                            <ProtectedRoute>
+                                <Layout>
+                                    <ReplenishmentPage />
+                                </Layout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/audit-logs"
+                        element={
+                            <ProtectedRoute>
+                                <Layout>
+                                    <AuditLogsPage />
+                                </Layout>
+                            </ProtectedRoute>
+                        }
+                    />
 
                     {/* Catch all fallback */}
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </BrowserRouter>
         </AuthProvider>
+    </ThemeProvider>
     );
 }
 

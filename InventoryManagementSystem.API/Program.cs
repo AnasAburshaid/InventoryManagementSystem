@@ -1,5 +1,6 @@
 using InventoryManagementSystem.API.Authorization;
 using InventoryManagementSystem.Business.Analytics.Services;
+using InventoryManagementSystem.Business.AuditLogs.Services;
 using InventoryManagementSystem.Business.Authentication;
 using InventoryManagementSystem.Business.Authentication.Services;
 using InventoryManagementSystem.Business.Brands.Services;
@@ -7,7 +8,9 @@ using InventoryManagementSystem.Business.Categories.Services;
 using InventoryManagementSystem.Business.Customers.Services;
 using InventoryManagementSystem.Business.Products.Services;
 using InventoryManagementSystem.Business.PurchaseOrders.Services;
+using InventoryManagementSystem.Business.Replenishment.Services;
 using InventoryManagementSystem.Business.SalesOrders.Services;
+using InventoryManagementSystem.Business.StockCounting.Services;
 using InventoryManagementSystem.Business.StockMovements.Services;
 using InventoryManagementSystem.Business.SupplierProducts.Services;
 using InventoryManagementSystem.Business.Suppliers.Capabilities.Services;
@@ -120,6 +123,9 @@ builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
 builder.Services.AddScoped<ISalesOrderLineService, SalesOrderLineService>();
 builder.Services.AddScoped<IStockMovementService, StockMovementService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+builder.Services.AddScoped<IStockCountService, StockCountService>();
+builder.Services.AddScoped<IReplenishmentService, ReplenishmentService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthorizationHandler, WarehouseRoleHandler>();
 

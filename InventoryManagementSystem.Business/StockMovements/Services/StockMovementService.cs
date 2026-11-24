@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using InventoryManagementSystem.Business.AuditLogs.Services;
 using InventoryManagementSystem.Business.StockMovements.DTOs;
 using InventoryManagementSystem.Business.Suppliers.Capabilities.Services;
 using InventoryManagementSystem.Business.Suppliers.Stock.Services;
@@ -18,19 +19,22 @@ public class StockMovementService : IStockMovementService
     private readonly IWarehouseRestrictionService _warehouseRestrictionService;
     private readonly ISupplierCapabilityService _supplierCapabilityService;
     private readonly ISupplierStockService _supplierStockService;
+    private readonly IAuditLogService? _auditLogService;
 
     public StockMovementService(
         InventoryDbContext context,
         IHttpContextAccessor httpContextAccessor,
         IWarehouseRestrictionService warehouseRestrictionService,
         ISupplierCapabilityService supplierCapabilityService,
-        ISupplierStockService supplierStockService)
+        ISupplierStockService supplierStockService,
+        IAuditLogService? auditLogService = null)
     {
         _context = context;
         _httpContextAccessor = httpContextAccessor;
         _warehouseRestrictionService = warehouseRestrictionService;
         _supplierCapabilityService = supplierCapabilityService;
         _supplierStockService = supplierStockService;
+        _auditLogService = auditLogService;
     }
 
     public async Task<StockMovementOperationResult<StockMovementResponse>> RecordMovementAsync(RecordMovementRequest request)
@@ -245,6 +249,16 @@ public class StockMovementService : IStockMovementService
                 adjustmentReasonName = (await _context.AdjustmentReasons.FindAsync(movement.AdjustmentReasonId.Value))?.Name;
             }
 
+            if (_auditLogService != null)
+            {
+                await _auditLogService.LogAsync(
+                    "RecordStockMovement",
+                    "StockMovement",
+                    movement.Id.ToString(),
+                    movement.WarehouseId,
+                    new { movement.Type, movement.Quantity, movement.ProductId, movement.ReferenceType, movement.ReferenceId });
+            }
+
             return new StockMovementOperationResult<StockMovementResponse>
             {
                 Status = StockMovementOperationStatus.Success,
@@ -397,6 +411,16 @@ public class StockMovementService : IStockMovementService
             if (transaction != null)
             {
                 await transaction.CommitAsync();
+            }
+
+            if (_auditLogService != null)
+            {
+                await _auditLogService.LogAsync(
+                    "TransferStock",
+                    "StockMovement",
+                    transferOut.Id.ToString(),
+                    sourceWarehouseId,
+                    new { SourceWarehouseId = sourceWarehouseId, request.DestinationWarehouseId, request.ProductId, request.Quantity, LinkedMovementId = transferIn.Id });
             }
 
             var responses = new List<StockMovementResponse>

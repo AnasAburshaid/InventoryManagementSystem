@@ -202,7 +202,9 @@ export const WarehousesPage = () => {
                             </div>
 
                             <div className="mt-5 border-t border-slate-100 pt-4 flex items-center justify-between text-xs">
-                                <span className="font-mono text-[11px] text-slate-400">ID: {wh.id.substring(0, 8)}...</span>
+                                <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-mono font-bold text-blue-700 border border-blue-200">
+                                    {wh.code}
+                                </span>
                                 <Link
                                     to={`/warehouses/${wh.id}`}
                                     className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"

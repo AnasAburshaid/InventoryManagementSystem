@@ -35,6 +35,12 @@ public partial class InventoryDbContext : DbContext
     public virtual DbSet<WarehouseCategoryRestriction> WarehouseCategoryRestrictions { get; set; }
     public virtual DbSet<SupplierStockMovement> SupplierStockMovements { get; set; }
 
+    // Warehouse Intelligence Modules
+    public virtual DbSet<StockCountSession> StockCountSessions { get; set; }
+    public virtual DbSet<StockCountItem> StockCountItems { get; set; }
+    public virtual DbSet<WarehouseProductSetting> WarehouseProductSettings { get; set; }
+    public virtual DbSet<AuditLog> AuditLogs { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AdjustmentReason>(entity =>
@@ -338,6 +344,93 @@ public partial class InventoryDbContext : DbContext
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_SupplierStockMovement_Product");
+        });
+
+        // Stock Counting & Reconciliation
+        modelBuilder.Entity<StockCountSession>(entity =>
+        {
+            entity.ToTable("StockCountSession");
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.Status)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsUnicode(false);
+            entity.Property(e => e.CountType)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Warehouse)
+                .WithMany()
+                .HasForeignKey(d => d.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_StockCountSession_Warehouse");
+
+            entity.HasMany(d => d.Items)
+                .WithOne(p => p.StockCountSession)
+                .HasForeignKey(p => p.StockCountSessionId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_StockCountItem_StockCountSession");
+        });
+
+        modelBuilder.Entity<StockCountItem>(entity =>
+        {
+            entity.ToTable("StockCountItem");
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.SystemQuantity).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CountedQuantity).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.DiscrepancyQuantity).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.Product)
+                .WithMany()
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_StockCountItem_Product");
+        });
+
+        // Reorder Points & Replenishment
+        modelBuilder.Entity<WarehouseProductSetting>(entity =>
+        {
+            entity.ToTable("WarehouseProductSetting");
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.ReorderPoint).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TargetStockLevel).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MinOrderQuantity).HasColumnType("decimal(18, 2)").HasDefaultValue(1m);
+
+            entity.HasIndex(e => new { e.WarehouseId, e.ProductId }, "UX_WarehouseProductSetting_Warehouse_Product")
+                .IsUnique();
+
+            entity.HasOne(d => d.Warehouse)
+                .WithMany()
+                .HasForeignKey(d => d.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_WarehouseProductSetting_Warehouse");
+
+            entity.HasOne(d => d.Product)
+                .WithMany()
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_WarehouseProductSetting_Product");
+        });
+
+        // Audit Trail
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.ToTable("AuditLog");
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.Action).HasMaxLength(100);
+            entity.Property(e => e.EntityName).HasMaxLength(100);
+            entity.Property(e => e.EntityId).HasMaxLength(100);
+
+            entity.HasOne(d => d.Warehouse)
+                .WithMany()
+                .HasForeignKey(d => d.WarehouseId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_AuditLog_Warehouse");
         });
 
         OnModelCreatingPartial(modelBuilder);

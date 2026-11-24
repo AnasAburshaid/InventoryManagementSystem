@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using InventoryManagementSystem.Business.AuditLogs.Services;
 using InventoryManagementSystem.Business.PurchaseOrders.DTOs;
 using InventoryManagementSystem.Business.Suppliers.Capabilities.Services;
 using InventoryManagementSystem.Business.Suppliers.Stock.Services;
@@ -23,6 +24,7 @@ public class PurchaseOrderService : IPurchaseOrderService
     private readonly ISupplierCapabilityService _capabilityService;
     private readonly ISupplierStockService _supplierStockService;
     private readonly IWarehouseRestrictionService _warehouseRestrictionService;
+    private readonly IAuditLogService? _auditLogService;
 
     public PurchaseOrderService(
         InventoryDbContext context,
@@ -30,7 +32,8 @@ public class PurchaseOrderService : IPurchaseOrderService
         PurchaseOrderNumberGenerator numberGenerator,
         ISupplierCapabilityService capabilityService,
         ISupplierStockService supplierStockService,
-        IWarehouseRestrictionService warehouseRestrictionService)
+        IWarehouseRestrictionService warehouseRestrictionService,
+        IAuditLogService? auditLogService = null)
     {
         _context = context;
         _httpContextAccessor = httpContextAccessor;
@@ -38,6 +41,7 @@ public class PurchaseOrderService : IPurchaseOrderService
         _capabilityService = capabilityService;
         _supplierStockService = supplierStockService;
         _warehouseRestrictionService = warehouseRestrictionService;
+        _auditLogService = auditLogService;
     }
 
     private string GetCurrentUserId()
@@ -312,6 +316,16 @@ public class PurchaseOrderService : IPurchaseOrderService
 
         var createdPo = await GetByIdAsync(purchaseOrder.Id);
 
+        if (_auditLogService != null && createdPo != null)
+        {
+            await _auditLogService.LogAsync(
+                "CreatePurchaseOrder",
+                "PurchaseOrder",
+                createdPo.Id.ToString(),
+                createdPo.WarehouseId,
+                new { createdPo.PurchaseOrderNumber, createdPo.SupplierId, TotalLines = createdPo.Lines.Count });
+        }
+
         return new PurchaseOrderOperationResult<PurchaseOrderResponse>
         {
             Status = PurchaseOrderOperationStatus.Success,
@@ -454,6 +468,17 @@ public class PurchaseOrderService : IPurchaseOrderService
         await _context.SaveChangesAsync();
 
         var updatedPo = await GetByIdAsync(po.Id);
+
+        if (_auditLogService != null && updatedPo != null)
+        {
+            await _auditLogService.LogAsync(
+                "UpdatePurchaseOrder",
+                "PurchaseOrder",
+                updatedPo.Id.ToString(),
+                updatedPo.WarehouseId,
+                new { updatedPo.PurchaseOrderNumber, Status = updatedPo.Status, LinesCount = request.Lines?.Count ?? 0 });
+        }
+
         return new PurchaseOrderOperationResult<PurchaseOrderResponse>
         {
             Status = PurchaseOrderOperationStatus.Success,
@@ -526,6 +551,17 @@ public class PurchaseOrderService : IPurchaseOrderService
         }
 
         var updatedPo = await GetByIdAsync(po.Id);
+
+        if (_auditLogService != null && updatedPo != null)
+        {
+            await _auditLogService.LogAsync(
+                "SubmitPurchaseOrder",
+                "PurchaseOrder",
+                updatedPo.Id.ToString(),
+                updatedPo.WarehouseId,
+                new { updatedPo.PurchaseOrderNumber, Status = updatedPo.Status });
+        }
+
         return new PurchaseOrderOperationResult<PurchaseOrderResponse>
         {
             Status = PurchaseOrderOperationStatus.Success,
@@ -693,6 +729,17 @@ public class PurchaseOrderService : IPurchaseOrderService
         }
 
         var updatedPo = await GetByIdAsync(po.Id);
+
+        if (_auditLogService != null && updatedPo != null)
+        {
+            await _auditLogService.LogAsync(
+                "ReceivePurchaseOrder",
+                "PurchaseOrder",
+                updatedPo.Id.ToString(),
+                updatedPo.WarehouseId,
+                new { updatedPo.PurchaseOrderNumber, Status = updatedPo.Status, ItemsReceived = request.Items?.Count });
+        }
+
         return new PurchaseOrderOperationResult<PurchaseOrderResponse>
         {
             Status = PurchaseOrderOperationStatus.Success,
@@ -766,6 +813,17 @@ public class PurchaseOrderService : IPurchaseOrderService
         }
 
         var updatedPo = await GetByIdAsync(po.Id);
+
+        if (_auditLogService != null && updatedPo != null)
+        {
+            await _auditLogService.LogAsync(
+                "CancelPurchaseOrder",
+                "PurchaseOrder",
+                updatedPo.Id.ToString(),
+                updatedPo.WarehouseId,
+                new { updatedPo.PurchaseOrderNumber, Reason = reason, Status = updatedPo.Status });
+        }
+
         return new PurchaseOrderOperationResult<PurchaseOrderResponse>
         {
             Status = PurchaseOrderOperationStatus.Success,

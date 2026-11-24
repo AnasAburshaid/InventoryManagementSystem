@@ -560,8 +560,8 @@ export const PurchaseOrdersPage = () => {
 
             {/* Procurement Analytics Panel */}
             {showAnalytics && (
-                <div className="rounded-xl border border-blue-100 bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 p-5 shadow-sm space-y-5">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="rounded-xl border border-blue-100 dark:border-blue-900/40 bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 dark:from-slate-900 dark:via-blue-950/20 dark:to-indigo-950/30 p-5 shadow-sm space-y-5">
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                         <div className="flex items-center gap-2">
                             <TrendingUp className="h-5 w-5 text-blue-600" />
                             <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800">
@@ -815,25 +815,22 @@ export const PurchaseOrdersPage = () => {
             </div>
 
             {/* Orders Table */}
-            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-slate-600">
-                        <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                             <tr>
-                                <th className="px-5 py-3.5">PO Number</th>
-                                <th className="px-5 py-3.5">Supplier</th>
+                                <th className="px-6 py-3.5">Purchase Order & Vendor</th>
                                 <th className="px-5 py-3.5">Destination Warehouse</th>
-                                <th className="px-5 py-3.5">Order Date</th>
-                                <th className="px-5 py-3.5">Status</th>
-                                <th className="px-5 py-3.5">Items</th>
+                                <th className="px-5 py-3.5">Fulfillment Status</th>
                                 <th className="px-5 py-3.5">Total Amount</th>
-                                <th className="px-5 py-3.5 text-right">Actions</th>
+                                <th className="px-6 py-3.5 text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="8" className="px-6 py-12 text-center text-slate-400">
+                                    <td colSpan="5" className="px-6 py-12 text-center text-slate-400">
                                         <div className="flex justify-center items-center gap-2">
                                             <RefreshCw className="h-5 w-5 animate-spin text-blue-600" />
                                             <span>Loading purchase orders...</span>
@@ -842,7 +839,7 @@ export const PurchaseOrdersPage = () => {
                                 </tr>
                             ) : paginatedOrders.length === 0 ? (
                                 <tr>
-                                    <td colSpan="8" className="px-6 py-12 text-center text-slate-400">
+                                    <td colSpan="5" className="px-6 py-12 text-center text-slate-400">
                                         No purchase orders found matching your filters.
                                     </td>
                                 </tr>
@@ -850,52 +847,107 @@ export const PurchaseOrdersPage = () => {
                                 paginatedOrders.map((order) => {
                                     const badge = STATUS_BADGES[order.status] || {
                                         label: order.status,
-                                        bg: 'bg-slate-100 text-slate-700'
+                                        bg: 'bg-slate-100 text-slate-700 border-slate-200'
                                     };
+                                    const totalOrd = order.totalOrderedQuantity || 0;
+                                    const totalRec = order.totalReceivedQuantity || 0;
+                                    const pctRec = totalOrd > 0 ? Math.round((totalRec / totalOrd) * 100) : 0;
+
                                     return (
-                                        <tr key={order.id} className="hover:bg-slate-50/70 transition">
-                                            <td className="px-5 py-4 font-mono font-semibold text-blue-600">
-                                                {order.purchaseOrderNumber}
-                                            </td>
-                                            <td className="px-5 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <Truck className="h-4 w-4 text-slate-400" />
-                                                    <span className="font-medium text-slate-900">{order.supplierName}</span>
+                                        <tr
+                                            key={order.id}
+                                            onClick={() => {
+                                                setSelectedOrder(order);
+                                                setDetailError('');
+                                                setDetailSuccess('');
+                                            }}
+                                            className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                                            title="Click to open Procurement Voucher"
+                                        >
+                                            {/* Column 1: PO Number & Supplier */}
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700 font-black shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
+                                                        <ShoppingBag className="h-5 w-5" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-mono text-xs font-black text-blue-600 group-hover:text-blue-700">
+                                                                {order.purchaseOrderNumber}
+                                                            </span>
+                                                            <span className="text-xs font-bold text-slate-900">
+                                                                {order.supplierName}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+                                                            <span>Ordered: {formatDateOnly(order.orderDate)}</span>
+                                                            <span>•</span>
+                                                            <span>{order.lines ? order.lines.length : 0} items ({totalOrd} units)</span>
+                                                            {order.expectedDeliveryDate && (
+                                                                <>
+                                                                    <span>•</span>
+                                                                    <span className="text-indigo-600 font-medium">Due: {formatDateOnly(order.expectedDeliveryDate)}</span>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </td>
+
+                                            {/* Column 2: Destination Warehouse */}
                                             <td className="px-5 py-4">
                                                 <div className="flex items-center gap-2">
                                                     <Warehouse className="h-4 w-4 text-slate-400" />
-                                                    <span>{order.warehouseName}</span>
+                                                    <div>
+                                                        <span className="text-xs font-bold text-slate-800 block">{order.warehouseName}</span>
+                                                        <span className="text-[10px] font-mono text-slate-400 font-semibold">{order.warehouseCode}</span>
+                                                    </div>
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-4 text-slate-600">
-                                                {formatDateOnly(order.orderDate)}
-                                            </td>
+
+                                            {/* Column 3: Fulfillment Status & Progress */}
                                             <td className="px-5 py-4">
-                                                <span
-                                                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${badge.bg}`}
-                                                >
-                                                    {badge.label}
-                                                </span>
+                                                <div className="space-y-1.5">
+                                                    <span
+                                                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold border ${badge.bg}`}
+                                                    >
+                                                        {badge.label}
+                                                    </span>
+                                                    {(order.status === 'Ordered' || order.status === 'PartiallyReceived') && (
+                                                        <div className="w-32">
+                                                            <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono mb-0.5">
+                                                                <span>{totalRec}/{totalOrd} rec</span>
+                                                                <span>{pctRec}%</span>
+                                                            </div>
+                                                            <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                                                                <div
+                                                                    className="h-full bg-emerald-500 rounded-full transition-all"
+                                                                    style={{ width: `${pctRec}%` }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </td>
-                                            <td className="px-5 py-4 text-slate-600">
-                                                {order.lines ? order.lines.length : 0} lines ({order.totalOrderedQuantity} units)
+
+                                            {/* Column 4: Total Amount */}
+                                            <td className="px-5 py-4 font-bold text-slate-900" title={formatCurrency(order.totalAmount)}>
+                                                <span className="font-mono text-sm">{formatCurrency(order.totalAmount)}</span>
                                             </td>
-                                            <td className="px-5 py-4 font-semibold text-slate-900" title={formatCurrency(order.totalAmount)}>
-                                                {formatMoneyK(order.totalAmount)}
-                                            </td>
-                                            <td className="px-5 py-4 text-right">
+
+                                            {/* Column 5: Action */}
+                                            <td className="px-6 py-4 text-right">
                                                 <button
-                                                    onClick={() => {
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
                                                         setSelectedOrder(order);
                                                         setDetailError('');
                                                         setDetailSuccess('');
                                                     }}
-                                                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-blue-600"
+                                                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition cursor-pointer"
                                                 >
                                                     <Eye className="h-3.5 w-3.5" />
-                                                    <span>Manage</span>
+                                                    <span>Open Voucher</span>
                                                 </button>
                                             </td>
                                         </tr>
@@ -1196,238 +1248,327 @@ export const PurchaseOrdersPage = () => {
                 </div>
             )}
 
-            {/* View / Manage Order Drawer / Modal */}
+            {/* ================= GORGEOUS PROCUREMENT VOUCHER / ORDER DOCUMENT ================= */}
             {selectedOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm overflow-y-auto">
-                    <div className="relative w-full max-w-4xl rounded-xl bg-white p-6 shadow-2xl my-8">
-                        {/* Drawer Header */}
-                        <div className="flex items-start justify-between border-b border-slate-100 pb-4">
-                            <div>
-                                <div className="flex items-center gap-3">
-                                    <h2 className="text-xl font-bold font-mono text-slate-900">
-                                        {selectedOrder.purchaseOrderNumber}
-                                    </h2>
-                                    <span
-                                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
-                                            STATUS_BADGES[selectedOrder.status]?.bg || 'bg-slate-100 text-slate-700'
-                                        }`}
-                                    >
-                                        {STATUS_BADGES[selectedOrder.status]?.label || selectedOrder.status}
-                                    </span>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm overflow-y-auto">
+                    <div className="relative w-full max-w-4xl rounded-3xl bg-white shadow-2xl my-6 border border-slate-200 flex flex-col overflow-hidden">
+                        {/* Voucher Document Top Header */}
+                        <div className="border-b border-slate-200 bg-slate-900 px-6 py-5 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="flex items-center gap-3.5">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white font-bold shadow-lg shadow-blue-500/30">
+                                    <ShoppingBag className="h-6 w-6" />
                                 </div>
-                                <p className="text-xs text-slate-500 mt-1">
-                                    Supplier: <strong className="text-slate-700">{selectedOrder.supplierName}</strong> | Destination: <strong className="text-slate-700">{selectedOrder.warehouseName}</strong> ({selectedOrder.warehouseCode})
-                                </p>
+                                <div>
+                                    <div className="flex items-center gap-3">
+                                        <h2 className="text-xl font-black font-mono tracking-tight text-white">
+                                            {selectedOrder.purchaseOrderNumber}
+                                        </h2>
+                                        <span
+                                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-black border ${
+                                                STATUS_BADGES[selectedOrder.status]?.bg || 'bg-slate-800 text-slate-200 border-slate-700'
+                                            }`}
+                                        >
+                                            {STATUS_BADGES[selectedOrder.status]?.label || selectedOrder.status}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-slate-300 mt-0.5">
+                                        Official Procurement Voucher • Issued: {formatDateOnly(selectedOrder.orderDate)}
+                                    </p>
+                                </div>
                             </div>
+
                             <button
                                 onClick={() => setSelectedOrder(null)}
-                                className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                                className="rounded-xl border border-white/20 p-2 text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer self-start sm:self-center"
+                                title="Close Voucher"
                             >
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
-                        {detailError && (
-                            <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 flex items-center gap-2">
-                                <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
-                                <span>{detailError}</span>
-                            </div>
-                        )}
-                        {detailSuccess && (
-                            <div className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700 flex items-center gap-2">
-                                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                                <span>{detailSuccess}</span>
-                            </div>
-                        )}
+                        {/* Status Stepper Timeline */}
+                        <div className="border-b border-slate-200 bg-slate-50 px-6 py-3.5">
+                            <div className="flex items-center justify-between max-w-2xl mx-auto">
+                                {[
+                                    { key: 'Draft', label: '1. Draft Staged' },
+                                    { key: 'Ordered', label: '2. Transmitted' },
+                                    { key: 'PartiallyReceived', label: '3. Inbound Dock' },
+                                    { key: 'Received', label: '4. Reconciled' }
+                                ].map((step, idx) => {
+                                    const isCurrent = selectedOrder.status === step.key;
+                                    const isPast =
+                                        (step.key === 'Draft') ||
+                                        (step.key === 'Ordered' && ['Ordered', 'PartiallyReceived', 'Received'].includes(selectedOrder.status)) ||
+                                        (step.key === 'PartiallyReceived' && ['PartiallyReceived', 'Received'].includes(selectedOrder.status)) ||
+                                        (step.key === 'Received' && selectedOrder.status === 'Received');
 
-                        {/* Order Summary Cards */}
-                        <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 rounded-lg p-3 text-xs">
-                            <div>
-                                <span className="text-slate-400">Order Date:</span>
-                                <p className="font-semibold text-slate-800">
-                                    {formatDateOnly(selectedOrder.orderDate)}
-                                </p>
-                            </div>
-                            <div>
-                                <span className="text-slate-400">Expected Delivery:</span>
-                                <p className="font-semibold text-slate-800">
-                                    {formatDateOnly(selectedOrder.expectedDeliveryDate)}
-                                </p>
-                            </div>
-                            <div>
-                                <span className="text-slate-400">Total Items:</span>
-                                <p className="font-semibold text-slate-800">
-                                    {selectedOrder.lines ? selectedOrder.lines.length : 0} lines ({selectedOrder.totalOrderedQuantity} units)
-                                </p>
-                            </div>
-                            <div>
-                                <span className="text-slate-400">Total Amount:</span>
-                                <p className="font-bold text-blue-600 text-sm" title={formatCurrency(selectedOrder.totalAmount)}>
-                                    {formatMoneyK(selectedOrder.totalAmount)}
-                                </p>
+                                    return (
+                                        <div key={idx} className="flex items-center gap-2">
+                                            <div className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${
+                                                isCurrent
+                                                    ? 'bg-blue-600 text-white ring-4 ring-blue-100'
+                                                    : isPast
+                                                    ? 'bg-emerald-500 text-white'
+                                                    : 'bg-slate-200 text-slate-500'
+                                            }`}>
+                                                {isPast && !isCurrent ? <CheckCircle2 className="h-3.5 w-3.5" /> : idx + 1}
+                                            </div>
+                                            <span className={`text-xs font-bold hidden sm:inline ${
+                                                isCurrent ? 'text-blue-700' : isPast ? 'text-slate-800' : 'text-slate-400'
+                                            }`}>
+                                                {step.label}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 
-                        {selectedOrder.notes && (
-                            <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700">
-                                <span className="font-semibold text-slate-900 block mb-1">Notes:</span>
-                                {selectedOrder.notes}
-                            </div>
-                        )}
-
-                        {/* Order Lines Table */}
-                        <div className="mt-5">
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-sm font-semibold text-slate-900">Line Items</h3>
-                                {selectedOrder.status === 'Draft' && !isAddingLine && (
-                                    <button
-                                        onClick={() => setIsAddingLine(true)}
-                                        className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-blue-600"
-                                    >
-                                        <Plus className="h-3.5 w-3.5" />
-                                        <span>Add Item</span>
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Add Line Form */}
-                            {isAddingLine && (
-                                <form
-                                    onSubmit={handleAddLineToOrder}
-                                    className="mb-3 rounded-lg border border-blue-200 bg-blue-50/50 p-3 flex flex-wrap items-center gap-3"
-                                >
-                                    <div className="flex-1 min-w-[200px]">
-                                        <select
-                                            required
-                                            value={newLineProductId}
-                                            onChange={(e) => setNewLineProductId(e.target.value)}
-                                            className="w-full rounded border border-slate-300 px-2.5 py-1.5 text-xs bg-white"
-                                        >
-                                            <option value="">Select Product</option>
-                                            {products.map((p) => (
-                                                <option key={p.id} value={p.id}>
-                                                    {p.name} ({p.sku})
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="w-24">
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            step="1"
-                                            required
-                                            placeholder="Qty"
-                                            value={newLineQuantity}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                if (val === '') {
-                                                    setNewLineQuantity('');
-                                                } else {
-                                                    const intVal = parseInt(val, 10);
-                                                    setNewLineQuantity(isNaN(intVal) ? '' : Math.max(1, intVal));
-                                                }
-                                            }}
-                                            className="w-full rounded border border-slate-300 px-2 py-1.5 text-xs bg-white font-mono"
-                                        />
-                                    </div>
-                                    <div className="w-28">
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            required
-                                            placeholder="Cost ($)"
-                                            value={newLineUnitCost}
-                                            onChange={(e) => setNewLineUnitCost(e.target.value)}
-                                            className="w-full rounded border border-slate-300 px-2 py-1.5 text-xs bg-white"
-                                        />
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <button
-                                            type="submit"
-                                            disabled={lineSubmitting}
-                                            className="rounded bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-                                        >
-                                            {lineSubmitting ? 'Adding...' : 'Add'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsAddingLine(false)}
-                                            className="rounded border border-slate-300 px-2 py-1.5 text-xs text-slate-600 hover:bg-slate-100"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </form>
+                        {/* Document Content Body */}
+                        <div className="p-6 space-y-5 max-h-[68vh] overflow-y-auto">
+                            {detailError && (
+                                <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs font-bold text-red-700 flex items-center gap-2">
+                                    <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+                                    <span>{detailError}</span>
+                                </div>
+                            )}
+                            {detailSuccess && (
+                                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs font-bold text-emerald-700 flex items-center gap-2">
+                                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                                    <span>{detailSuccess}</span>
+                                </div>
                             )}
 
-                            <div className="overflow-x-auto rounded-lg border border-slate-200">
-                                <table className="w-full text-left text-xs text-slate-600">
-                                    <thead className="bg-slate-50 border-b border-slate-200 font-semibold text-slate-500 uppercase">
-                                        <tr>
-                                            <th className="px-4 py-2.5">Line #</th>
-                                            <th className="px-4 py-2.5">Product</th>
-                                            <th className="px-4 py-2.5">Ordered</th>
-                                            <th className="px-4 py-2.5">Received</th>
-                                            <th className="px-4 py-2.5">Remaining</th>
-                                            <th className="px-4 py-2.5">Unit Cost</th>
-                                            <th className="px-4 py-2.5">Line Total</th>
-                                            {selectedOrder.status === 'Draft' && (
-                                                <th className="px-4 py-2.5 text-right">Action</th>
-                                            )}
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {selectedOrder.lines && selectedOrder.lines.length > 0 ? (
-                                            selectedOrder.lines.map((l) => (
-                                                <tr key={l.id} className="hover:bg-slate-50/50">
-                                                    <td className="px-4 py-2.5 font-mono text-slate-400">#{l.lineNumber}</td>
-                                                    <td className="px-4 py-2.5">
-                                                        <span className="font-semibold text-slate-900 block">{l.productName}</span>
-                                                        <span className="font-mono text-[11px] text-slate-400">{l.productSku}</span>
-                                                    </td>
-                                                    <td className="px-4 py-2.5 font-semibold text-slate-900">
-                                                        {l.quantityOrdered}
-                                                    </td>
-                                                    <td className="px-4 py-2.5 font-semibold text-emerald-600">
-                                                        {l.quantityReceived}
-                                                    </td>
-                                                    <td className="px-4 py-2.5 font-semibold text-amber-600">
-                                                        {l.quantityRemaining}
-                                                    </td>
-                                                    <td className="px-4 py-2.5">${Number(l.unitCost).toFixed(2)}</td>
-                                                    <td className="px-4 py-2.5 font-semibold text-slate-900">
-                                                        ${Number(l.lineTotal).toFixed(2)}
-                                                    </td>
-                                                    {selectedOrder.status === 'Draft' && (
-                                                        <td className="px-4 py-2.5 text-right">
-                                                            <button
-                                                                onClick={() => handleDeleteLine(l.id)}
-                                                                disabled={selectedOrder.lines.length === 1}
-                                                                className="text-slate-400 hover:text-red-600 disabled:opacity-30"
-                                                                title="Delete line item"
-                                                            >
-                                                                <Trash2 className="h-3.5 w-3.5" />
-                                                            </button>
-                                                        </td>
-                                                    )}
-                                                </tr>
-                                            ))
-                                        ) : (
+                            {/* Two Sourcing & Destination Dossier Cards */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Vendor Card */}
+                                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
+                                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400">
+                                        <Truck className="h-4 w-4 text-indigo-600" />
+                                        <span>Supplier / Vendor Dossier</span>
+                                    </div>
+                                    <h3 className="text-base font-black text-slate-900">{selectedOrder.supplierName}</h3>
+                                    <div className="text-xs text-slate-600 space-y-1 pt-1 border-t border-slate-100">
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Order Date:</span>
+                                            <span className="font-semibold text-slate-800">{formatDateOnly(selectedOrder.orderDate)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Expected Delivery:</span>
+                                            <span className="font-semibold text-indigo-700">{formatDateOnly(selectedOrder.expectedDeliveryDate) || 'Standard Shipping'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Destination Facility Card */}
+                                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
+                                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400">
+                                        <Warehouse className="h-4 w-4 text-blue-600" />
+                                        <span>Destination Warehouse</span>
+                                    </div>
+                                    <div className="flex items-baseline gap-2">
+                                        <h3 className="text-base font-black text-slate-900">{selectedOrder.warehouseName}</h3>
+                                        <span className="font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100">
+                                            {selectedOrder.warehouseCode}
+                                        </span>
+                                    </div>
+                                    <div className="text-xs text-slate-600 space-y-1 pt-1 border-t border-slate-100">
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Receiving Bay:</span>
+                                            <span className="font-semibold text-slate-800">Main Logistics Dock</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Notes / Ref:</span>
+                                            <span className="font-semibold text-slate-800 truncate max-w-[180px]">{selectedOrder.notes || 'No remarks'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Summary Ribbon Metrics */}
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
+                                <div>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Catalog Lines</span>
+                                    <span className="font-mono text-lg font-black text-slate-900">
+                                        {selectedOrder.lines ? selectedOrder.lines.length : 0} lines
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Ordered Units</span>
+                                    <span className="font-mono text-lg font-black text-slate-900">
+                                        {selectedOrder.totalOrderedQuantity}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Received Units</span>
+                                    <span className="font-mono text-lg font-black text-emerald-600">
+                                        {selectedOrder.totalReceivedQuantity || 0}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Procurement Value</span>
+                                    <span className="font-mono text-lg font-black text-blue-600" title={formatCurrency(selectedOrder.totalAmount)}>
+                                        {formatCurrency(selectedOrder.totalAmount)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Line Items Section */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                                        Procured Item Lines ({selectedOrder.lines ? selectedOrder.lines.length : 0})
+                                    </h3>
+                                    {selectedOrder.status === 'Draft' && !isAddingLine && (
+                                        <button
+                                            onClick={() => setIsAddingLine(true)}
+                                            className="inline-flex items-center gap-1 rounded-xl bg-blue-50 border border-blue-200 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 transition cursor-pointer"
+                                        >
+                                            <Plus className="h-3.5 w-3.5" />
+                                            <span>Add Product Line</span>
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Add Line Form */}
+                                {isAddingLine && (
+                                    <form
+                                        onSubmit={handleAddLineToOrder}
+                                        className="rounded-2xl border border-blue-200 bg-blue-50/40 p-4 flex flex-wrap items-center gap-3"
+                                    >
+                                        <div className="flex-1 min-w-[200px]">
+                                            <select
+                                                required
+                                                value={newLineProductId}
+                                                onChange={(e) => setNewLineProductId(e.target.value)}
+                                                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold bg-white"
+                                            >
+                                                <option value="">Select Product to Add</option>
+                                                {products.map((p) => (
+                                                    <option key={p.id} value={p.id}>
+                                                        {p.name} ({p.sku})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="w-24">
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                step="1"
+                                                required
+                                                placeholder="Qty"
+                                                value={newLineQuantity}
+                                                onChange={(e) => setNewLineQuantity(e.target.value)}
+                                                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs bg-white font-mono font-bold"
+                                            />
+                                        </div>
+                                        <div className="w-28">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                required
+                                                placeholder="Unit Cost ($)"
+                                                value={newLineUnitCost}
+                                                onChange={(e) => setNewLineUnitCost(e.target.value)}
+                                                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs bg-white font-mono font-bold"
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="submit"
+                                                disabled={lineSubmitting}
+                                                className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-60 cursor-pointer"
+                                            >
+                                                {lineSubmitting ? 'Adding...' : 'Add Item'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsAddingLine(false)}
+                                                className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+
+                                {/* Line items Table */}
+                                <div className="overflow-hidden rounded-2xl border border-slate-200">
+                                    <table className="w-full text-left text-xs text-slate-600">
+                                        <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase">
                                             <tr>
-                                                <td colSpan="8" className="p-4 text-center text-slate-400">
-                                                    No lines in this order.
-                                                </td>
+                                                <th className="px-4 py-3">Product SKU & Name</th>
+                                                <th className="px-3 py-3 text-center">Ordered</th>
+                                                <th className="px-3 py-3 text-center">Received</th>
+                                                <th className="px-3 py-3 text-center">Outstanding</th>
+                                                <th className="px-4 py-3 text-right">Unit Cost</th>
+                                                <th className="px-4 py-3 text-right">Line Total</th>
+                                                {selectedOrder.status === 'Draft' && (
+                                                    <th className="px-3 py-3 text-right">Action</th>
+                                                )}
                                             </tr>
-                                        )}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {selectedOrder.lines && selectedOrder.lines.length > 0 ? (
+                                                selectedOrder.lines.map((l) => (
+                                                    <tr key={l.id} className="hover:bg-slate-50/70 transition">
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex items-center gap-2.5">
+                                                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700 font-bold shrink-0">
+                                                                    <Package className="h-4 w-4" />
+                                                                </div>
+                                                                <div>
+                                                                    <span className="font-mono text-xs font-bold text-slate-900 block">{l.productSku}</span>
+                                                                    <span className="text-slate-600 font-medium block truncate max-w-xs">{l.productName}</span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-3 py-3 text-center font-mono font-bold text-slate-800">
+                                                            {l.quantityOrdered}
+                                                        </td>
+                                                        <td className="px-3 py-3 text-center font-mono font-bold text-emerald-600">
+                                                            {l.quantityReceived}
+                                                        </td>
+                                                        <td className="px-3 py-3 text-center font-mono font-bold text-amber-600">
+                                                            {l.quantityRemaining}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-right font-mono text-slate-700">
+                                                            ${Number(l.unitCost).toFixed(2)}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-right font-mono font-black text-slate-900">
+                                                            ${Number(l.lineTotal).toFixed(2)}
+                                                        </td>
+                                                        {selectedOrder.status === 'Draft' && (
+                                                            <td className="px-3 py-3 text-right">
+                                                                <button
+                                                                    onClick={() => handleDeleteLine(l.id)}
+                                                                    disabled={selectedOrder.lines.length === 1}
+                                                                    className="text-slate-400 hover:text-red-600 disabled:opacity-30 cursor-pointer p-1"
+                                                                    title="Remove line"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </button>
+                                                            </td>
+                                                        )}
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="7" className="p-6 text-center text-slate-400 text-xs">
+                                                        No lines in this purchase order.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Order Workflow Actions */}
-                        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                        {/* Voucher Bottom Action Toolbar */}
+                        <div className="border-t border-slate-200 bg-slate-50 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
                             <div className="flex items-center gap-2">
                                 {selectedOrder.status === 'Draft' && (
                                     <button
@@ -1438,10 +1579,10 @@ export const PurchaseOrdersPage = () => {
                                                 orderNumber: selectedOrder.purchaseOrderNumber
                                             })
                                         }
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100"
+                                        className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-bold text-red-600 hover:bg-red-100 transition cursor-pointer"
                                     >
                                         <Trash2 className="h-4 w-4" />
-                                        <span>Delete Draft</span>
+                                        <span>Delete Draft Voucher</span>
                                     </button>
                                 )}
 
@@ -1455,7 +1596,7 @@ export const PurchaseOrdersPage = () => {
                                                 orderNumber: selectedOrder.purchaseOrderNumber
                                             })
                                         }
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-red-600"
+                                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-red-600 transition cursor-pointer"
                                     >
                                         <Ban className="h-4 w-4" />
                                         <span>Cancel Order</span>
@@ -1473,17 +1614,17 @@ export const PurchaseOrdersPage = () => {
                                                 orderNumber: selectedOrder.purchaseOrderNumber
                                             })
                                         }
-                                        className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700"
+                                        className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition cursor-pointer"
                                     >
                                         <Send className="h-4 w-4" />
-                                        <span>Submit Order (Set to Ordered)</span>
+                                        <span>Submit Order to Supplier</span>
                                     </button>
                                 )}
 
                                 {(selectedOrder.status === 'Ordered' || selectedOrder.status === 'PartiallyReceived') && (
                                     <button
                                         onClick={openReceiveModal}
-                                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700"
+                                        className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2 text-xs font-black text-white shadow-md hover:bg-emerald-700 active:bg-emerald-800 transition cursor-pointer"
                                     >
                                         <ArrowDownLeft className="h-4 w-4" />
                                         <span>Receive Goods Into Warehouse</span>

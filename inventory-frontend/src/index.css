@@ -1,1 +1,540 @@
 @import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    @apply antialiased text-slate-800 bg-slate-50 transition-colors duration-200;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  html.dark body {
+    background-color: #0B1120;
+    color: #F1F5F9;
+  }
+}
+
+/* ==========================================================================
+   ENTERPRISE SAAS DARK THEME (Linear & Vercel Inspired)
+   Design Tokens strictly adhering to .agents/skills/dark-mode/SKILL.md
+   - App background: #0B1120
+   - Sidebar & Content surfaces: #111827
+   - Cards and elevated panels: #1E293B
+   - Hover and selected surfaces: #273449
+   - Default border: #334155
+   - Subtle divider: #273449
+   - Primary text: #F1F5F9 (high contrast #F8FAFC)
+   - Secondary text: #CBD5E1
+   - Muted text: #94A3B8
+   - Disabled text: #64748B
+   ========================================================================== */
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* 1. Global Dark App Background & Content Surfaces */
+.dark body,
+html.dark body {
+  background-color: #0B1120 !important;
+  color: #F1F5F9 !important;
+}
+
+/* Main content surfaces & outer page wrappers (#111827) */
+.dark .bg-slate-50,
+.dark .bg-slate-50\/50,
+.dark .bg-slate-50\/70,
+.dark .bg-slate-50\/80,
+.dark .bg-slate-50\/90,
+.dark .bg-gray-50,
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/50,
+html.dark .bg-slate-50\/70,
+html.dark .bg-slate-50\/80,
+html.dark .bg-slate-50\/90,
+html.dark .bg-gray-50 {
+  background-color: #111827 !important;
+  color: #F1F5F9 !important;
+}
+
+/* 2. Cards & Elevated Panels (#1E293B) */
+.dark .bg-white,
+.dark .bg-white\/80,
+.dark .bg-white\/90,
+.dark .bg-white\/95,
+html.dark .bg-white,
+html.dark .bg-white\/80,
+html.dark .bg-white\/90,
+html.dark .bg-white\/95 {
+  background-color: #1E293B !important;
+  color: #F1F5F9 !important;
+  border-color: #334155 !important;
+}
+
+/* Subtle secondary surfaces & chips (#273449) */
+.dark .bg-slate-100,
+.dark .bg-gray-100,
+html.dark .bg-slate-100,
+html.dark .bg-gray-100 {
+  background-color: #273449 !important;
+  color: #CBD5E1 !important;
+}
+
+.dark .bg-slate-200,
+.dark .bg-gray-200,
+html.dark .bg-slate-200,
+html.dark .bg-gray-200 {
+  background-color: #334155 !important;
+}
+
+/* 3. Global Borders (#334155) & Subtle Dividers (#273449) */
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-200\/60,
+.dark .border-slate-200\/80,
+.dark .border-slate-200\/90,
+.dark .border-slate-300,
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300,
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-200\/60,
+html.dark .border-slate-200\/80,
+html.dark .border-slate-200\/90,
+html.dark .border-slate-300,
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-gray-300 {
+  border-color: #334155 !important;
+}
+
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #273449 !important;
+}
+
+/* 4. Complete Typography Hierarchy per dark-mode Skill */
+/* Primary text: #F1F5F9 & High contrast: #F8FAFC */
+.dark .text-slate-950,
+.dark .text-slate-900,
+.dark .text-gray-950,
+.dark .text-gray-900,
+.dark .text-neutral-950,
+.dark .text-neutral-900,
+.dark .text-zinc-950,
+.dark .text-zinc-900,
+.dark .text-black,
+html.dark .text-slate-950,
+html.dark .text-slate-900,
+html.dark .text-gray-950,
+html.dark .text-gray-900,
+html.dark .text-neutral-950,
+html.dark .text-neutral-900,
+html.dark .text-zinc-950,
+html.dark .text-zinc-900,
+html.dark .text-black {
+  color: #F8FAFC !important;
+}
+
+.dark .text-slate-800,
+.dark .text-gray-800,
+.dark .text-neutral-800,
+.dark .text-zinc-800,
+html.dark .text-slate-800,
+html.dark .text-gray-800,
+html.dark .text-neutral-800,
+html.dark .text-zinc-800 {
+  color: #F1F5F9 !important;
+}
+
+/* Secondary text: #CBD5E1 */
+.dark .text-slate-700,
+.dark .text-slate-600,
+.dark .text-gray-700,
+.dark .text-gray-600,
+.dark .text-neutral-700,
+.dark .text-neutral-600,
+html.dark .text-slate-700,
+html.dark .text-slate-600,
+html.dark .text-gray-700,
+html.dark .text-gray-600,
+html.dark .text-neutral-700,
+html.dark .text-neutral-600 {
+  color: #CBD5E1 !important;
+}
+
+/* Muted text: #94A3B8 */
+.dark .text-slate-500,
+.dark .text-slate-400,
+.dark .text-gray-500,
+.dark .text-gray-400,
+.dark .text-neutral-500,
+.dark .text-neutral-400,
+html.dark .text-slate-500,
+html.dark .text-slate-400,
+html.dark .text-gray-500,
+html.dark .text-gray-400,
+html.dark .text-neutral-500,
+html.dark .text-neutral-400 {
+  color: #94A3B8 !important;
+}
+
+/* Disabled text: #64748B */
+.dark .text-slate-300,
+.dark .text-gray-300,
+html.dark .text-slate-300,
+html.dark .text-gray-300 {
+  color: #64748B !important;
+}
+
+/* 5. Hover & Interactive Surfaces (#273449) */
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-50\/50:hover,
+.dark .hover\:bg-slate-50\/70:hover,
+.dark .hover\:bg-slate-50\/80:hover,
+.dark .hover\:bg-gray-50:hover,
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-50\/50:hover,
+html.dark .hover\:bg-slate-50\/70:hover,
+html.dark .hover\:bg-slate-50\/80:hover,
+html.dark .hover\:bg-gray-50:hover {
+  background-color: #273449 !important;
+}
+
+.dark .hover\:bg-slate-100:hover,
+.dark .hover\:bg-gray-100:hover,
+html.dark .hover\:bg-slate-100:hover,
+html.dark .hover\:bg-gray-100:hover {
+  background-color: #334155 !important;
+}
+
+/* 6. Form Controls: Inputs, Selects, and Textareas */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+.dark select,
+.dark textarea,
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+html.dark select,
+html.dark textarea {
+  background-color: #1E293B !important;
+  border-color: #334155 !important;
+  color: #F1F5F9 !important;
+}
+
+.dark select option,
+html.dark select option {
+  background-color: #1E293B !important;
+  color: #F1F5F9 !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder,
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748B !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus,
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus {
+  border-color: #3B82F6 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 1px #3B82F6 !important;
+}
+
+/* 7. Tables per Enterprise SaaS Spec */
+.dark table,
+html.dark table {
+  color: #F1F5F9;
+}
+
+.dark thead,
+html.dark thead {
+  background-color: #111827 !important;
+  border-color: #334155 !important;
+}
+
+.dark thead th,
+html.dark thead th {
+  color: #94A3B8 !important;
+  border-color: #334155 !important;
+}
+
+.dark tbody tr,
+html.dark tbody tr {
+  border-color: #273449 !important;
+}
+
+.dark tbody tr:hover,
+html.dark tbody tr:hover {
+  background-color: #273449 !important;
+}
+
+.dark tbody td,
+html.dark tbody td {
+  border-color: #273449 !important;
+  color: #F1F5F9;
+}
+
+/* 8. Status Colors per Skill:
+   - Success: #22C55E
+   - Warning: #F59E0B
+   - Error: #EF4444
+   - Information: #38BDF8
+   - Primary: #3B82F6
+*/
+
+/* Success (Green / Emerald) */
+.dark .bg-emerald-50,
+.dark .bg-green-50,
+html.dark .bg-emerald-50,
+html.dark .bg-green-50 {
+  background-color: rgba(34, 197, 94, 0.12) !important;
+  color: #4ADE80 !important;
+  border-color: rgba(34, 197, 94, 0.25) !important;
+}
+.dark .bg-emerald-100,
+.dark .bg-green-100,
+html.dark .bg-emerald-100,
+html.dark .bg-green-100 {
+  background-color: rgba(34, 197, 94, 0.2) !important;
+  color: #4ADE80 !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
+}
+.dark .text-emerald-600,
+.dark .text-emerald-700,
+.dark .text-emerald-800,
+.dark .text-green-600,
+.dark .text-green-700,
+.dark .text-green-800,
+html.dark .text-emerald-600,
+html.dark .text-emerald-700,
+html.dark .text-emerald-800,
+html.dark .text-green-600,
+html.dark .text-green-700,
+html.dark .text-green-800 {
+  color: #4ADE80 !important;
+}
+
+/* Warning (Amber / Yellow) */
+.dark .bg-amber-50,
+.dark .bg-yellow-50,
+html.dark .bg-amber-50,
+html.dark .bg-yellow-50 {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  color: #FBBF24 !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+}
+.dark .bg-amber-100,
+.dark .bg-yellow-100,
+html.dark .bg-amber-100,
+html.dark .bg-yellow-100 {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  color: #FBBF24 !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+.dark .text-amber-600,
+.dark .text-amber-700,
+.dark .text-amber-800,
+.dark .text-yellow-600,
+.dark .text-yellow-700,
+.dark .text-yellow-800,
+html.dark .text-amber-600,
+html.dark .text-amber-700,
+html.dark .text-amber-800,
+html.dark .text-yellow-600,
+html.dark .text-yellow-700,
+html.dark .text-yellow-800 {
+  color: #FBBF24 !important;
+}
+
+/* Error (Rose / Red) */
+.dark .bg-rose-50,
+.dark .bg-red-50,
+html.dark .bg-rose-50,
+html.dark .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.12) !important;
+  color: #F87171 !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
+}
+.dark .bg-rose-100,
+.dark .bg-red-100,
+html.dark .bg-rose-100,
+html.dark .bg-red-100 {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  color: #F87171 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+.dark .text-rose-600,
+.dark .text-rose-700,
+.dark .text-rose-800,
+.dark .text-red-600,
+.dark .text-red-700,
+.dark .text-red-800,
+html.dark .text-rose-600,
+html.dark .text-rose-700,
+html.dark .text-rose-800,
+html.dark .text-red-600,
+html.dark .text-red-700,
+html.dark .text-red-800 {
+  color: #F87171 !important;
+}
+
+/* Information / Primary Accent (Blue) */
+.dark .bg-blue-50,
+html.dark .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.12) !important;
+  color: #60A5FA !important;
+  border-color: rgba(59, 130, 246, 0.25) !important;
+}
+.dark .bg-blue-100,
+html.dark .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  color: #60A5FA !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+.dark .text-blue-600,
+.dark .text-blue-700,
+.dark .text-blue-800,
+html.dark .text-blue-600,
+html.dark .text-blue-700,
+html.dark .text-blue-800 {
+  color: #60A5FA !important;
+}
+
+/* Indigo (Replenishment) */
+.dark .bg-indigo-50,
+html.dark .bg-indigo-50 {
+  background-color: rgba(99, 102, 241, 0.12) !important;
+  color: #818CF8 !important;
+  border-color: rgba(99, 102, 241, 0.25) !important;
+}
+.dark .bg-indigo-100,
+html.dark .bg-indigo-100 {
+  background-color: rgba(99, 102, 241, 0.2) !important;
+  color: #818CF8 !important;
+  border-color: rgba(99, 102, 241, 0.35) !important;
+}
+.dark .text-indigo-600,
+.dark .text-indigo-700,
+.dark .text-indigo-800,
+html.dark .text-indigo-600,
+html.dark .text-indigo-700,
+html.dark .text-indigo-800 {
+  color: #818CF8 !important;
+}
+
+/* Purple & Violet */
+.dark .bg-purple-50,
+.dark .bg-violet-50,
+html.dark .bg-purple-50,
+html.dark .bg-violet-50 {
+  background-color: rgba(168, 85, 247, 0.12) !important;
+  color: #C084FC !important;
+  border-color: rgba(168, 85, 247, 0.25) !important;
+}
+.dark .text-purple-600,
+.dark .text-purple-700,
+.dark .text-purple-800,
+.dark .text-violet-600,
+.dark .text-violet-700,
+.dark .text-violet-800,
+html.dark .text-purple-600,
+html.dark .text-purple-700,
+html.dark .text-purple-800,
+html.dark .text-violet-600,
+html.dark .text-violet-700,
+html.dark .text-violet-800 {
+  color: #C084FC !important;
+}
+
+/* Teal (Audit Logs) */
+.dark .bg-teal-50,
+html.dark .bg-teal-50 {
+  background-color: rgba(20, 184, 166, 0.12) !important;
+  color: #2DD4BF !important;
+  border-color: rgba(20, 184, 166, 0.25) !important;
+}
+.dark .text-teal-600,
+.dark .text-teal-700,
+.dark .text-teal-800,
+html.dark .text-teal-600,
+html.dark .text-teal-700,
+html.dark .text-teal-800 {
+  color: #2DD4BF !important;
+}
+
+/* Cyan */
+.dark .bg-cyan-50,
+html.dark .bg-cyan-50 {
+  background-color: rgba(6, 182, 212, 0.12) !important;
+  color: #22D3EE !important;
+  border-color: rgba(6, 182, 212, 0.25) !important;
+}
+.dark .text-cyan-600,
+.dark .text-cyan-700,
+.dark .text-cyan-800,
+html.dark .text-cyan-600,
+html.dark .text-cyan-700,
+html.dark .text-cyan-800 {
+  color: #22D3EE !important;
+}
+
+/* 9. Restrained Elevation (Subtle borders instead of heavy shadows per SKILL.md) */
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-xs,
+.dark .shadow-2xs,
+html.dark .shadow-sm,
+html.dark .shadow-md,
+html.dark .shadow-xs,
+html.dark .shadow-2xs {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.35), 0 0 0 1px #334155 !important;
+}
+
+.dark .hover\:shadow-md:hover,
+.dark .hover\:shadow-lg:hover,
+html.dark .hover\:shadow-md:hover,
+html.dark .hover\:shadow-lg:hover {
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.45), 0 0 0 1px #475569 !important;
+}
+
+/* 10. Modals & Dialog Backdrops */
+.dark .backdrop-blur-xs,
+.dark .backdrop-blur-sm,
+html.dark .backdrop-blur-xs,
+html.dark .backdrop-blur-sm {
+  background-color: rgba(11, 17, 32, 0.8) !important;
+}
+
+/* Sleek Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(51, 65, 85, 0.7);
+}

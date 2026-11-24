@@ -563,8 +563,8 @@ export const StockMovementsPage = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">Stock Movements</h1>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-[#F1F5F9]">Stock Movements</h1>
+                    <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1">
                         Record purchases, sales, and inventory counts with facility and supplier compatibility guards.
                     </p>
                 </div>
@@ -578,9 +578,9 @@ export const StockMovementsPage = () => {
                             }
                         }}
                         disabled={loadingHistory || loadingEligibleSuppliers}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition disabled:opacity-60"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-[#F1F5F9] shadow-2xs hover:bg-slate-50 dark:hover:bg-[#273449] transition disabled:opacity-60 cursor-pointer"
                     >
-                        <RefreshCw className={`h-3.5 w-3.5 ${loadingHistory ? 'animate-spin text-blue-600' : ''}`} />
+                        <RefreshCw className={`h-3.5 w-3.5 ${loadingHistory ? 'animate-spin text-blue-600 dark:text-blue-400' : ''}`} />
                         <span>Refresh</span>
                     </button>
                 </div>
@@ -588,38 +588,38 @@ export const StockMovementsPage = () => {
 
             {/* Notification Alerts */}
             {pageError && (
-                <div className="flex items-center gap-3 rounded-xl border border-rose-500/30 bg-rose-50 p-4 text-xs text-rose-800 animate-in fade-in">
-                    <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+                <div className="flex items-center gap-3 rounded-xl border border-rose-500/30 bg-rose-50 dark:bg-rose-950/40 p-4 text-xs text-rose-800 dark:text-rose-200 animate-in fade-in">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
                     <span className="font-medium">{pageError}</span>
                 </div>
             )}
 
             {pageSuccess && (
-                <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-50 p-4 text-xs text-emerald-800 animate-in fade-in">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/40 p-4 text-xs text-emerald-800 dark:text-emerald-200 animate-in fade-in">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                     <span className="font-medium">{pageSuccess}</span>
                 </div>
             )}
 
             {/* PROMINENT FACILITY / WAREHOUSE SELECTOR */}
-            <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 p-5 shadow-xs space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="rounded-2xl border border-slate-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] p-5 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 dark:border-[#334155] pb-4">
                     <div className="flex items-center gap-3.5">
                         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-xs shrink-0">
                             <Warehouse className="h-6 w-6" />
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-100/70 px-2.5 py-0.5 rounded-md">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 bg-blue-100/70 dark:bg-blue-950/50 px-2.5 py-0.5 rounded-md border border-transparent dark:border-blue-800/40">
                                     Step 1 • Target Facility
                                 </span>
                                 {selectedWarehouse?.code && (
-                                    <span className="font-mono text-xs font-bold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                                    <span className="font-mono text-xs font-bold text-slate-600 dark:text-[#CBD5E1] bg-slate-100 dark:bg-[#111827] px-2 py-0.5 rounded-md border border-slate-200 dark:border-[#334155]">
                                         {selectedWarehouse.code}
                                     </span>
                                 )}
                             </div>
-                            <h2 className="text-xl font-extrabold text-slate-900 mt-0.5">
+                            <h2 className="text-xl font-extrabold text-slate-900 dark:text-[#F1F5F9] mt-0.5">
                                 {selectedWarehouse?.name || 'Select Warehouse'}
                             </h2>
                         </div>
@@ -627,13 +627,13 @@ export const StockMovementsPage = () => {
 
                     <div className="flex items-center gap-2 flex-wrap">
                         {selectedWarehouse?.canAcceptAllCategories ? (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
-                                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+                                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                                 <span>Accepts All Categories</span>
                             </span>
                         ) : (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 border border-amber-200">
-                                <ShieldAlert className="h-3.5 w-3.5 text-amber-600" />
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-950/40 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60">
+                                <ShieldAlert className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                                 <span>
                                     {warehouseRestrictions?.permittedCategories?.length
                                         ? `Restricted to ${warehouseRestrictions.permittedCategories.length} Categories`
@@ -641,15 +641,15 @@ export const StockMovementsPage = () => {
                                 </span>
                             </span>
                         )}
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 border border-slate-200 shadow-2xs">
-                            <Package className="h-3.5 w-3.5 text-blue-600" />
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-white dark:bg-[#111827] px-3 py-1 text-xs font-semibold text-slate-700 dark:text-[#CBD5E1] border border-slate-200 dark:border-[#334155] shadow-2xs">
+                            <Package className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                             <span>{loadingEligibleProducts ? '...' : `${eligibleProducts.length} Eligible Products`}</span>
                         </span>
                     </div>
                 </div>
 
                 <div>
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2.5 block">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-[#94A3B8] mb-2.5 block">
                         Choose Active Warehouse:
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -661,25 +661,25 @@ export const StockMovementsPage = () => {
                                     onClick={() => setSelectedWarehouseId(w.id)}
                                     className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
                                         isSelected
-                                            ? 'border-blue-600 bg-white shadow-md ring-2 ring-blue-600/20'
-                                            : 'border-slate-200 bg-white/80 hover:border-blue-300 hover:bg-white hover:shadow-xs'
+                                            ? 'border-blue-600 dark:border-blue-500 bg-blue-50/40 dark:bg-blue-600/15 shadow-sm ring-1 ring-blue-500/30'
+                                            : 'border-slate-200 dark:border-[#334155] bg-white dark:bg-[#111827] hover:border-blue-300 dark:hover:border-slate-500 hover:shadow-xs'
                                     }`}
                                 >
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="flex items-start gap-3">
                                             <div className={`flex h-11 w-11 items-center justify-center rounded-xl shrink-0 ${
-                                                isSelected ? 'bg-blue-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-600'
+                                                isSelected ? 'bg-blue-600 text-white shadow-2xs' : 'bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8]'
                                             }`}>
                                                 <Warehouse className="h-5 w-5" />
                                             </div>
                                             <div>
-                                                <h3 className="text-sm font-bold text-slate-900">{w.name}</h3>
+                                                <h3 className="text-sm font-bold text-slate-900 dark:text-[#F1F5F9]">{w.name}</h3>
                                                 <div className="flex items-center gap-1.5 mt-1">
-                                                    <span className="font-mono text-[11px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                                                    <span className="font-mono text-[11px] font-bold text-slate-600 dark:text-[#CBD5E1] bg-slate-100 dark:bg-[#1E293B] px-1.5 py-0.5 rounded border border-slate-200 dark:border-[#334155]">
                                                         {w.code}
                                                     </span>
                                                     {w.address && (
-                                                        <span className="text-[11px] text-slate-500 truncate max-w-[130px]" title={w.address}>
+                                                        <span className="text-[11px] text-slate-500 dark:text-[#94A3B8] truncate max-w-[130px]" title={w.address}>
                                                             {w.address}
                                                         </span>
                                                     )}
@@ -688,15 +688,15 @@ export const StockMovementsPage = () => {
                                         </div>
 
                                         <div className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 ${
-                                            isSelected ? 'bg-blue-600 text-white' : 'border border-slate-300'
+                                            isSelected ? 'bg-blue-600 text-white' : 'border border-slate-300 dark:border-[#334155]'
                                         }`}>
                                             {isSelected && <Check className="h-3 w-3" />}
                                         </div>
                                     </div>
 
-                                    <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                                        <span className="text-slate-500 font-medium">Acceptance Policy:</span>
-                                        <span className={`font-semibold ${w.canAcceptAllCategories ? 'text-emerald-700' : 'text-amber-700'}`}>
+                                    <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-[#334155] flex items-center justify-between text-[11px]">
+                                        <span className="text-slate-500 dark:text-[#94A3B8] font-medium">Acceptance Policy:</span>
+                                        <span className={`font-semibold ${w.canAcceptAllCategories ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
                                             {w.canAcceptAllCategories ? 'All Categories Permitted' : 'Restricted Categories'}
                                         </span>
                                     </div>
@@ -708,20 +708,20 @@ export const StockMovementsPage = () => {
             </div>
 
             {/* Main Action Card */}
-            <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+            <div className="rounded-2xl border border-slate-200/80 dark:border-[#334155] bg-white dark:bg-[#1E293B] shadow-xs overflow-hidden">
                 {/* Mode Selector Tabs */}
-                <div className="border-b border-slate-100 p-4 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
-                    <div className="flex rounded-xl bg-slate-200/70 p-1 text-xs font-semibold">
+                <div className="border-b border-slate-100 dark:border-[#334155] p-4 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50 dark:bg-[#111827]">
+                    <div className="flex rounded-xl bg-slate-200/70 dark:bg-[#1E293B] p-1 text-xs font-semibold border border-transparent dark:border-[#334155]">
                         <button
                             type="button"
                             onClick={() => handleMovementTypeChange('Purchase')}
                             className={`flex items-center gap-2 rounded-lg px-4 py-2 transition ${
                                 movementType === 'Purchase'
-                                    ? 'bg-white text-emerald-700 shadow-xs'
-                                    : 'text-slate-600 hover:text-slate-900'
+                                    ? 'bg-white dark:bg-[#273449] text-emerald-700 dark:text-emerald-400 shadow-xs border border-transparent dark:border-emerald-500/30'
+                                    : 'text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9]'
                             }`}
                         >
-                            <ShoppingCart className="h-4 w-4 text-emerald-600" />
+                            <ShoppingCart className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                             <span>Purchase (Inbound)</span>
                         </button>
                         <button
@@ -729,11 +729,11 @@ export const StockMovementsPage = () => {
                             onClick={() => handleMovementTypeChange('Sale')}
                             className={`flex items-center gap-2 rounded-lg px-4 py-2 transition ${
                                 movementType === 'Sale'
-                                    ? 'bg-white text-purple-700 shadow-xs'
-                                    : 'text-slate-600 hover:text-slate-900'
+                                    ? 'bg-white dark:bg-[#273449] text-purple-700 dark:text-purple-400 shadow-xs border border-transparent dark:border-purple-500/30'
+                                    : 'text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9]'
                             }`}
                         >
-                            <ShoppingBag className="h-4 w-4 text-purple-600" />
+                            <ShoppingBag className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                             <span>Sale (Outbound)</span>
                         </button>
                         <button
@@ -741,21 +741,21 @@ export const StockMovementsPage = () => {
                             onClick={() => handleMovementTypeChange('AdjustmentOut')}
                             className={`flex items-center gap-2 rounded-lg px-4 py-2 transition ${
                                 movementType.startsWith('Adjustment')
-                                    ? 'bg-white text-blue-700 shadow-xs'
-                                    : 'text-slate-600 hover:text-slate-900'
+                                    ? 'bg-white dark:bg-[#273449] text-blue-700 dark:text-blue-400 shadow-xs border border-transparent dark:border-blue-500/30'
+                                    : 'text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9]'
                             }`}
                         >
-                            <Plus className="h-4 w-4 text-blue-600" />
+                            <Plus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                             <span>Stock Adjustment</span>
                         </button>
                     </div>
 
                     {/* Active Facility Indicator */}
-                    <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
-                        <Warehouse className="h-4 w-4 text-blue-600 shrink-0" />
-                        <span className="text-xs font-semibold text-slate-500">Active Facility:</span>
-                        <span className="text-xs font-bold text-slate-900">{selectedWarehouse?.name}</span>
-                        <span className="font-mono text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                    <div className="flex items-center gap-2 bg-white dark:bg-[#111827] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#334155] shadow-2xs">
+                        <Warehouse className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                        <span className="text-xs font-semibold text-slate-500 dark:text-[#94A3B8]">Active Facility:</span>
+                        <span className="text-xs font-bold text-slate-900 dark:text-[#F1F5F9]">{selectedWarehouse?.name}</span>
+                        <span className="font-mono text-[10px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800/60">
                             {selectedWarehouse?.code}
                         </span>
                     </div>
@@ -765,8 +765,8 @@ export const StockMovementsPage = () => {
                     {/* SECTION 1: PRODUCT SELECTOR (SEARCHABLE CARD PICKER) */}
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                                <Package className="h-4 w-4 text-blue-600" />
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-[#CBD5E1] flex items-center gap-1.5">
+                                <Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                 <span>Target Product</span>
                             </label>
 
@@ -774,7 +774,7 @@ export const StockMovementsPage = () => {
                                 <button
                                     type="button"
                                     onClick={() => setIsProductPickerOpen(true)}
-                                    className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800"
+                                    className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer"
                                 >
                                     <Search className="h-3 w-3" />
                                     <span>Change Product</span>
@@ -784,34 +784,34 @@ export const StockMovementsPage = () => {
 
                         {selectedProduct ? (
                             /* Selected Product Card */
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-2xl border border-blue-200 bg-blue-50/30">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-2xl border border-blue-200/80 dark:border-[#334155] bg-blue-50/40 dark:bg-[#111827]">
                                 <div className="flex items-center gap-3.5">
                                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-xs shrink-0">
                                         <Package className="h-6 w-6" />
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h3 className="text-sm font-bold text-slate-900">{selectedProduct.name}</h3>
-                                            <span className="font-mono text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                                            <h3 className="text-sm font-bold text-slate-900 dark:text-[#F1F5F9]">{selectedProduct.name}</h3>
+                                            <span className="font-mono text-[11px] font-semibold text-slate-500 dark:text-[#CBD5E1] bg-slate-100 dark:bg-[#1E293B] px-2 py-0.5 rounded-md border border-slate-200 dark:border-[#334155]">
                                                 SKU: {selectedProduct.sku || selectedProduct.SKU}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600">
-                                                <Tag className="h-2.5 w-2.5 text-blue-500" />
+                                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 dark:text-[#CBD5E1]">
+                                                <Tag className="h-2.5 w-2.5 text-blue-500 dark:text-blue-400" />
                                                 <span>{selectedProduct.categoryName || 'General'}</span>
                                             </span>
                                             {selectedProduct.brandName && (
                                                 <>
-                                                    <span className="text-slate-300">•</span>
-                                                    <span className="text-[11px] font-medium text-slate-600">
+                                                    <span className="text-slate-300 dark:text-slate-600">•</span>
+                                                    <span className="text-[11px] font-medium text-slate-600 dark:text-[#CBD5E1]">
                                                         Brand: <strong>{selectedProduct.brandName}</strong>
                                                     </span>
                                                 </>
                                             )}
-                                            <span className="text-slate-300">•</span>
-                                            <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-emerald-800 bg-white px-2 py-0.5 rounded-md border border-emerald-200 shadow-2xs">
-                                                <DollarSign className="h-3 w-3 text-emerald-600 -mr-0.5" />
+                                            <span className="text-slate-300 dark:text-slate-600">•</span>
+                                            <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 bg-white dark:bg-[#1E293B] px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
+                                                <DollarSign className="h-3 w-3 text-emerald-600 dark:text-emerald-400 -mr-0.5" />
                                                 <span>Avg Price: {formatMoneyK(selectedProductAvgPrice ?? selectedProduct.sellingPrice)}</span>
                                             </span>
                                         </div>
@@ -820,34 +820,34 @@ export const StockMovementsPage = () => {
 
                                 <div className="flex items-center gap-4 self-end sm:self-center flex-wrap">
                                     <div className="text-right">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8] block">
                                             {selectedProductAvgPrice != null ? 'Avg Supplier Price' : 'Estimated Price'}
                                         </span>
-                                        <span className="text-base font-extrabold font-mono text-emerald-700" title={formatCurrency(selectedProductAvgPrice ?? selectedProduct.sellingPrice)}>
+                                        <span className="text-base font-extrabold font-mono text-emerald-700 dark:text-emerald-400" title={formatCurrency(selectedProductAvgPrice ?? selectedProduct.sellingPrice)}>
                                             {formatMoneyK(selectedProductAvgPrice ?? selectedProduct.sellingPrice)}
                                         </span>
                                         {selectedProductAvgPrice != null && (
-                                            <span className="text-[10px] text-slate-400 block font-medium">
+                                            <span className="text-[10px] text-slate-400 dark:text-[#94A3B8] block font-medium">
                                                 across authorized vendors
                                             </span>
                                         )}
                                     </div>
 
-                                    <div className="h-8 w-px bg-slate-200 hidden sm:block" />
+                                    <div className="h-8 w-px bg-slate-200 dark:bg-[#334155] hidden sm:block" />
 
                                     <div className="text-right">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8] block">
                                             Stock in {selectedWarehouse?.name || 'Facility'}
                                         </span>
-                                        <span className="text-lg font-extrabold font-mono text-slate-900">
-                                            {loadingHistory ? '...' : (currentStock ?? 0)} <span className="text-xs font-semibold text-slate-500">{selectedProduct.unitOfMeasureName || 'Units'}</span>
+                                        <span className="text-lg font-extrabold font-mono text-slate-900 dark:text-[#F1F5F9]">
+                                            {loadingHistory ? '...' : (currentStock ?? 0)} <span className="text-xs font-semibold text-slate-500 dark:text-[#94A3B8]">{selectedProduct.unitOfMeasureName || 'Units'}</span>
                                         </span>
                                     </div>
 
                                     <button
                                         type="button"
                                         onClick={() => setIsProductPickerOpen(true)}
-                                        className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition"
+                                        className="rounded-xl border border-slate-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-[#F1F5F9] hover:bg-slate-50 dark:hover:bg-[#273449] shadow-2xs transition"
                                     >
                                         Change
                                     </button>
@@ -858,14 +858,14 @@ export const StockMovementsPage = () => {
                             <button
                                 type="button"
                                 onClick={() => setIsProductPickerOpen(true)}
-                                className="w-full p-6 rounded-2xl border-2 border-dashed border-slate-300 hover:border-blue-400 bg-slate-50 hover:bg-blue-50/30 text-center transition flex flex-col items-center justify-center gap-2"
+                                className="w-full p-6 rounded-2xl border-2 border-dashed border-slate-300 dark:border-[#334155] hover:border-blue-400 dark:hover:border-blue-500 bg-slate-50 dark:bg-[#111827] hover:bg-blue-50/30 dark:hover:bg-[#1E293B] text-center transition flex flex-col items-center justify-center gap-2"
                             >
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
                                     <Search className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <p className="text-xs font-bold text-slate-800">Click to Select a Product</p>
-                                    <p className="text-[11px] text-slate-500">Search by product name, SKU, category, or brand</p>
+                                    <p className="text-xs font-bold text-slate-800 dark:text-[#F1F5F9]">Click to Select a Product</p>
+                                    <p className="text-[11px] text-slate-500 dark:text-[#94A3B8]">Search by product name, SKU, category, or brand</p>
                                 </div>
                             </button>
                         )}
@@ -875,24 +875,24 @@ export const StockMovementsPage = () => {
                     {movementType === 'Purchase' ? (
                         <div>
                             <div className="flex items-center justify-between mb-2">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                                    <Truck className="h-4 w-4 text-emerald-600" />
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-[#CBD5E1] flex items-center gap-1.5">
+                                    <Truck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                                     <span>Select Authorized Supplier</span>
                                 </label>
                                 {eligibleSuppliers.length > 0 && (
-                                    <span className="text-xs text-slate-500 font-medium">
+                                    <span className="text-xs text-slate-500 dark:text-[#94A3B8] font-medium">
                                         {eligibleSuppliers.length} supplier{eligibleSuppliers.length > 1 ? 's' : ''} authorized
                                     </span>
                                 )}
                             </div>
 
                             {loadingEligibleSuppliers ? (
-                                <div className="p-6 text-center text-xs text-slate-400">
+                                <div className="p-6 text-center text-xs text-slate-400 dark:text-[#94A3B8]">
                                     Checking authorized suppliers and ATP stock...
                                 </div>
                             ) : eligibleSuppliers.length === 0 ? (
-                                <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-800 flex items-center gap-2.5">
-                                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+                                <div className="rounded-xl border border-amber-300 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/40 p-4 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2.5">
+                                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
                                     <span>
                                         No suppliers are authorized to supply <strong>{selectedProduct?.name}</strong>. A supplier must offer this product and match capability authorizations.
                                     </span>
@@ -908,35 +908,35 @@ export const StockMovementsPage = () => {
                                                 onClick={() => setSelectedSupplierId(s.supplierId)}
                                                 className={`relative p-3.5 rounded-2xl border cursor-pointer transition flex flex-col justify-between ${
                                                     isSelected
-                                                        ? 'border-emerald-600 bg-emerald-50/40 shadow-xs ring-1 ring-emerald-600'
-                                                        : 'border-slate-200 bg-white hover:border-slate-300'
+                                                        ? 'border-emerald-600 dark:border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/30 shadow-xs ring-1 ring-emerald-600 dark:ring-emerald-500'
+                                                        : 'border-slate-200 dark:border-[#334155] bg-white dark:bg-[#111827] hover:border-slate-300 dark:hover:border-slate-500'
                                                 }`}
                                             >
                                                 <div className="flex items-start justify-between gap-2">
                                                     <div>
                                                         <div className="flex items-center gap-1.5">
-                                                            <h4 className="text-xs font-bold text-slate-900">{s.supplierName}</h4>
+                                                            <h4 className="text-xs font-bold text-slate-900 dark:text-[#F1F5F9]">{s.supplierName}</h4>
                                                             {s.isPreferred && (
-                                                                <span className="inline-flex items-center gap-0.5 rounded bg-emerald-100 text-emerald-800 px-1 py-0.2 text-[9px] font-bold">
-                                                                    <Star className="h-2 w-2 fill-emerald-700" /> Preferred
+                                                                <span className="inline-flex items-center gap-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 px-1 py-0.2 text-[9px] font-bold border border-emerald-200 dark:border-emerald-800/60">
+                                                                    <Star className="h-2 w-2 fill-emerald-700 dark:fill-emerald-400" /> Preferred
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <span className="text-[11px] text-slate-500">
-                                                            Price: <strong title={formatCurrency(s.lastPurchasePrice ?? s.purchasePrice ?? 0)}>{formatMoneyK(s.lastPurchasePrice ?? s.purchasePrice ?? 0)}</strong> {s.leadTimeDays ? `• ${s.leadTimeDays}d lead` : ''}
+                                                        <span className="text-[11px] text-slate-500 dark:text-[#94A3B8]">
+                                                            Price: <strong className="text-slate-700 dark:text-[#CBD5E1]" title={formatCurrency(s.lastPurchasePrice ?? s.purchasePrice ?? 0)}>{formatMoneyK(s.lastPurchasePrice ?? s.purchasePrice ?? 0)}</strong> {s.leadTimeDays ? `• ${s.leadTimeDays}d lead` : ''}
                                                         </span>
                                                     </div>
 
                                                     <div className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 ${
-                                                        isSelected ? 'bg-emerald-600 text-white' : 'border border-slate-300'
+                                                        isSelected ? 'bg-emerald-600 text-white' : 'border border-slate-300 dark:border-[#334155]'
                                                     }`}>
                                                         {isSelected && <Check className="h-2.5 w-2.5" />}
                                                     </div>
                                                 </div>
 
-                                                <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                                                    <span className="text-slate-500 font-medium">Available to Promise:</span>
-                                                    <span className={`font-mono font-bold ${s.availableToPromise > 0 ? 'text-emerald-700' : 'text-slate-500'}`}>
+                                                <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-[#334155] flex items-center justify-between text-[11px]">
+                                                    <span className="text-slate-500 dark:text-[#94A3B8] font-medium">Available to Promise:</span>
+                                                    <span className={`font-mono font-bold ${s.availableToPromise > 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-500 dark:text-[#94A3B8]'}`}>
                                                         {s.availableToPromise} units
                                                     </span>
                                                 </div>
@@ -948,8 +948,8 @@ export const StockMovementsPage = () => {
                         </div>
                     ) : movementType === 'Sale' ? (
                         <div>
-                            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5 mb-2">
-                                <Users className="h-4 w-4 text-purple-600" />
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-[#CBD5E1] flex items-center gap-1.5 mb-2">
+                                <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                                 <span>Client / Customer</span>
                             </label>
                             <div className="flex gap-2">
@@ -957,7 +957,7 @@ export const StockMovementsPage = () => {
                                     required
                                     value={selectedCustomerId}
                                     onChange={(e) => setSelectedCustomerId(e.target.value)}
-                                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs outline-none focus:border-purple-500"
+                                    className="w-full rounded-xl border border-slate-300 dark:border-[#334155] bg-white dark:bg-[#111827] px-3.5 py-2.5 text-xs font-medium text-slate-900 dark:text-[#F1F5F9] shadow-2xs outline-none focus:border-purple-500"
                                 >
                                     {activeCustomers.map((c) => (
                                         <option key={c.id} value={c.id}>
@@ -969,10 +969,10 @@ export const StockMovementsPage = () => {
                                     <button
                                         type="button"
                                         onClick={() => openCustomerModal(currentSelectedCustomer)}
-                                        className="rounded-xl border border-slate-200 bg-slate-50 px-3 text-slate-600 hover:bg-slate-100 transition shrink-0"
+                                        className="rounded-xl border border-slate-200 dark:border-[#334155] bg-slate-50 dark:bg-[#1E293B] px-3 text-slate-600 dark:text-[#CBD5E1] hover:bg-slate-100 dark:hover:bg-[#273449] transition shrink-0"
                                         title="View Customer Profile"
                                     >
-                                        <Eye className="h-4 w-4 text-purple-600" />
+                                        <Eye className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                                     </button>
                                 )}
                             </div>
@@ -980,26 +980,26 @@ export const StockMovementsPage = () => {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 block">
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-[#CBD5E1] mb-1.5 block">
                                     Adjustment Direction
                                 </label>
                                 <select
                                     value={movementType}
                                     onChange={(e) => setMovementType(e.target.value)}
-                                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 outline-none focus:border-blue-500"
+                                    className="w-full rounded-xl border border-slate-300 dark:border-[#334155] bg-white dark:bg-[#111827] px-3.5 py-2.5 text-xs font-medium text-slate-900 dark:text-[#F1F5F9] outline-none focus:border-blue-500"
                                 >
                                     <option value="AdjustmentOut">- Damaged / Discrepancy (Deduct Stock)</option>
                                     <option value="AdjustmentIn">+ Found / Surplus (Add Stock)</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 block">
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-[#CBD5E1] mb-1.5 block">
                                     Reason
                                 </label>
                                 <select
                                     value={selectedAdjustmentReasonId}
                                     onChange={(e) => setSelectedAdjustmentReasonId(e.target.value)}
-                                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 outline-none focus:border-blue-500"
+                                    className="w-full rounded-xl border border-slate-300 dark:border-[#334155] bg-white dark:bg-[#111827] px-3.5 py-2.5 text-xs font-medium text-slate-900 dark:text-[#F1F5F9] outline-none focus:border-blue-500"
                                 >
                                     {adjustmentReasons.map((r) => (
                                         <option key={r.id} value={r.id}>{r.name}</option>
@@ -1010,19 +1010,19 @@ export const StockMovementsPage = () => {
                     )}
 
                     {/* SECTION 3: QUANTITY & REFERENCE */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-[#334155]">
                         <div>
                             <div className="flex items-center justify-between mb-1.5">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-[#CBD5E1]">
                                     Quantity
                                 </label>
                                 {movementType === 'Purchase' && currentSelectedSupplier && (
-                                    <span className="text-[11px] font-semibold text-emerald-700">
+                                    <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
                                         Supplier ATP: {currentSelectedSupplier.availableToPromise}
                                     </span>
                                 )}
                                 {(movementType === 'Sale' || movementType === 'AdjustmentOut') && (
-                                    <span className="text-[11px] font-semibold text-slate-600">
+                                    <span className="text-[11px] font-semibold text-slate-600 dark:text-[#94A3B8]">
                                         Available: {currentStock ?? 0}
                                     </span>
                                 )}
@@ -1031,7 +1031,7 @@ export const StockMovementsPage = () => {
                                 <button
                                     type="button"
                                     onClick={() => setQuantity((prev) => Math.max(1, (parseInt(prev, 10) || 1) - 1))}
-                                    className="h-10 w-10 flex items-center justify-center rounded-xl border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold"
+                                    className="h-10 w-10 flex items-center justify-center rounded-xl border border-slate-300 dark:border-[#334155] bg-slate-50 dark:bg-[#111827] text-slate-600 dark:text-[#F1F5F9] hover:bg-slate-100 dark:hover:bg-[#273449] font-bold cursor-pointer"
                                     title="Decrease quantity by 1"
                                 >
                                     -
@@ -1051,12 +1051,12 @@ export const StockMovementsPage = () => {
                                             setQuantity(isNaN(intVal) ? '' : Math.max(1, intVal));
                                         }
                                     }}
-                                    className="flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-bold text-center text-slate-900 outline-none focus:border-blue-500 h-10 font-mono"
+                                    className="flex-1 rounded-xl border border-slate-300 dark:border-[#334155] bg-white dark:bg-[#111827] px-3.5 py-2 text-sm font-bold text-center text-slate-900 dark:text-[#F1F5F9] outline-none focus:border-blue-500 h-10 font-mono"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setQuantity((prev) => (parseInt(prev, 10) || 0) + 1)}
-                                    className="h-10 w-10 flex items-center justify-center rounded-xl border border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold"
+                                    className="h-10 w-10 flex items-center justify-center rounded-xl border border-slate-300 dark:border-[#334155] bg-slate-50 dark:bg-[#111827] text-slate-600 dark:text-[#F1F5F9] hover:bg-slate-100 dark:hover:bg-[#273449] font-bold cursor-pointer"
                                     title="Increase quantity by 1"
                                 >
                                     +
@@ -1065,7 +1065,7 @@ export const StockMovementsPage = () => {
                         </div>
 
                         <div>
-                            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 block">
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-[#CBD5E1] mb-1.5 block">
                                 Reference # (PO / Invoice / Note)
                             </label>
                             <input
@@ -1079,40 +1079,40 @@ export const StockMovementsPage = () => {
                                 }
                                 value={referenceId}
                                 onChange={(e) => setReferenceId(e.target.value)}
-                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-medium text-slate-900 outline-none focus:border-blue-500 h-10"
+                                className="w-full rounded-xl border border-slate-300 dark:border-[#334155] bg-white dark:bg-[#111827] px-3.5 py-2 text-xs font-medium text-slate-900 dark:text-[#F1F5F9] outline-none focus:border-blue-500 h-10 placeholder-slate-400 dark:placeholder-slate-500"
                             />
                         </div>
                     </div>
 
                     {/* Financial Price & Revenue/Cost Summary Box */}
                     {selectedProduct && (
-                        <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-r from-slate-50 to-blue-50/20 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="rounded-2xl border border-slate-200 dark:border-[#334155] bg-slate-50/70 dark:bg-[#111827] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div className="flex items-center gap-3.5">
                                 <div className={`flex h-11 w-11 items-center justify-center rounded-2xl shrink-0 shadow-2xs ${
                                     movementType === 'Purchase'
-                                        ? 'bg-emerald-100 text-emerald-700'
+                                        ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60'
                                         : movementType === 'Sale'
-                                        ? 'bg-purple-100 text-purple-700'
-                                        : 'bg-blue-100 text-blue-700'
+                                        ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800/60'
+                                        : 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/60'
                                 }`}>
                                     <DollarSign className="h-6 w-6" />
                                 </div>
                                 <div>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] block">
                                         {movementType === 'Purchase'
                                             ? 'Unit Procurement Cost'
                                             : movementType === 'Sale'
                                             ? 'Unit Selling Price'
                                             : 'Unit Valuation'}
                                     </span>
-                                    <div className="text-sm font-bold text-slate-900 font-mono" title={formatCurrency(unitPrice)}>
-                                        {formatMoneyK(unitPrice)} <span className="text-[11px] font-normal text-slate-500">per {selectedProduct.unitOfMeasureName || 'unit'}</span>
+                                    <div className="text-sm font-bold text-slate-900 dark:text-[#F1F5F9] font-mono" title={formatCurrency(unitPrice)}>
+                                        {formatMoneyK(unitPrice)} <span className="text-[11px] font-normal text-slate-500 dark:text-[#94A3B8]">per {selectedProduct.unitOfMeasureName || 'unit'}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                            <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200 dark:border-[#334155]">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] block">
                                     {movementType === 'Purchase'
                                         ? 'Total Procurement Spend'
                                         : movementType === 'Sale'
@@ -1122,10 +1122,10 @@ export const StockMovementsPage = () => {
                                 <div
                                     className={`text-2xl font-black font-mono tracking-tight ${
                                         movementType === 'Sale'
-                                            ? 'text-purple-700'
+                                            ? 'text-purple-700 dark:text-purple-400'
                                             : movementType === 'Purchase'
-                                            ? 'text-emerald-700'
-                                            : 'text-blue-700'
+                                            ? 'text-emerald-700 dark:text-emerald-400'
+                                            : 'text-blue-700 dark:text-blue-400'
                                     }`}
                                     title={formatCurrency(estimatedTotalValue)}
                                 >
@@ -1136,7 +1136,7 @@ export const StockMovementsPage = () => {
                     )}
 
                     {/* Submit Bar */}
-                    <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
+                    <div className="pt-4 border-t border-slate-100 dark:border-[#334155] flex items-center justify-end">
                         <button
                             type="submit"
                             disabled={
@@ -1145,7 +1145,7 @@ export const StockMovementsPage = () => {
                                 (movementType === 'Purchase' && (!selectedSupplierId || eligibleSuppliers.length === 0)) ||
                                 (movementType === 'Sale' && !selectedCustomerId)
                             }
-                            className={`inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-xs font-bold text-white shadow-xs transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                            className={`inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-xs font-bold text-white shadow-xs transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
                                 movementType === 'Purchase'
                                     ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20'
                                     : movementType === 'Sale'
@@ -1174,37 +1174,37 @@ export const StockMovementsPage = () => {
             </div>
 
             {/* Inter-Warehouse Transfer Collapsible Action */}
-            <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-slate-50">
+            <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 dark:border-[#334155] bg-slate-50 dark:bg-[#111827]">
                 <div className="flex items-center gap-3">
-                    <Send className="h-4 w-4 text-blue-600" />
+                    <Send className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     <div>
-                        <h4 className="text-xs font-bold text-slate-900">Need to move stock between facilities?</h4>
-                        <p className="text-[11px] text-slate-500">Transfer {selectedProduct?.name || 'this product'} to another active warehouse facility.</p>
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-[#F1F5F9]">Need to move stock between facilities?</h4>
+                        <p className="text-[11px] text-slate-500 dark:text-[#94A3B8]">Transfer {selectedProduct?.name || 'this product'} to another active warehouse facility.</p>
                     </div>
                 </div>
                 <button
                     onClick={() => setShowTransfer(!showTransfer)}
                     disabled={!selectedProductId || (currentStock ?? 0) <= 0}
-                    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition disabled:opacity-50"
+                    className="rounded-xl border border-slate-300 dark:border-[#334155] bg-white dark:bg-[#1E293B] px-4 py-2 text-xs font-semibold text-slate-700 dark:text-[#F1F5F9] hover:bg-slate-50 dark:hover:bg-[#273449] shadow-2xs transition disabled:opacity-50 cursor-pointer"
                 >
                     {showTransfer ? 'Hide Transfer' : 'Transfer Stock'}
                 </button>
             </div>
 
             {showTransfer && (
-                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs animate-in fade-in">
-                    <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <Send className="h-4 w-4 text-blue-600" />
+                <div className="rounded-2xl border border-slate-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] p-6 shadow-xs animate-in fade-in">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-[#F1F5F9] mb-4 flex items-center gap-2">
+                        <Send className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         <span>Transfer {selectedProduct?.name} to Another Warehouse</span>
                     </h3>
                     <form onSubmit={handleTransferStock} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                         <div>
-                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Destination Warehouse *</label>
+                            <label className="block text-xs font-semibold text-slate-600 dark:text-[#CBD5E1] mb-1.5">Destination Warehouse *</label>
                             <select
                                 required
                                 value={destWarehouseId}
                                 onChange={(e) => setDestWarehouseId(e.target.value)}
-                                className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-900 font-medium"
+                                className="w-full rounded-xl border border-slate-300 dark:border-[#334155] bg-white dark:bg-[#111827] px-3.5 py-2.5 text-xs text-slate-900 dark:text-[#F1F5F9] font-medium"
                             >
                                 <option value="">Select destination...</option>
                                 {warehouses
@@ -1215,7 +1215,7 @@ export const StockMovementsPage = () => {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Quantity to Transfer (Units) *</label>
+                            <label className="block text-xs font-semibold text-slate-600 dark:text-[#CBD5E1] mb-1.5">Quantity to Transfer (Units) *</label>
                             <input
                                 type="number"
                                 min="1"
@@ -1231,21 +1231,21 @@ export const StockMovementsPage = () => {
                                         setTransferQty(isNaN(intVal) ? '' : Math.max(1, intVal));
                                     }
                                 }}
-                                className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs text-slate-900 font-medium font-mono"
+                                className="w-full rounded-xl border border-slate-300 dark:border-[#334155] bg-white dark:bg-[#111827] px-3.5 py-2 text-xs text-slate-900 dark:text-[#F1F5F9] font-medium font-mono"
                             />
                         </div>
                         <div className="flex gap-2">
                             <button
                                 type="submit"
                                 disabled={submittingTransfer}
-                                className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow hover:bg-blue-500 disabled:opacity-60"
+                                className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow hover:bg-blue-500 disabled:opacity-60 cursor-pointer"
                             >
                                 {submittingTransfer ? 'Transferring...' : 'Execute Transfer'}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setShowTransfer(false)}
-                                className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                                className="rounded-xl border border-slate-300 dark:border-[#334155] bg-white dark:bg-[#111827] px-3 py-2 text-xs font-semibold text-slate-600 dark:text-[#CBD5E1] hover:bg-slate-50 dark:hover:bg-[#273449] cursor-pointer"
                             >
                                 Cancel
                             </button>
@@ -1255,25 +1255,25 @@ export const StockMovementsPage = () => {
             )}
 
             {/* LEDGER AUDIT TABLE */}
-            <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
-                <div className="border-b border-slate-100 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="rounded-2xl border border-slate-200/80 dark:border-[#334155] bg-white dark:bg-[#1E293B] shadow-xs overflow-hidden">
+                <div className="border-b border-slate-100 dark:border-[#334155] bg-white dark:bg-[#1E293B] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h3 className="text-sm font-bold text-slate-900">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-[#F1F5F9]">
                             Movement History Ledger ({filteredHistory.length} records)
                         </h3>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-slate-500 dark:text-[#94A3B8]">
                             Immutable audit trail for {selectedProduct?.name || 'product'} in {selectedWarehouse?.name || 'facility'}
                         </p>
                     </div>
 
                     <div className="relative">
-                        <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Search className="h-3.5 w-3.5 text-slate-400 dark:text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                             type="text"
                             placeholder="Filter ledger records..."
                             value={historySearch}
                             onChange={(e) => setHistorySearch(e.target.value)}
-                            className="rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs text-slate-800 outline-none focus:border-blue-500 w-48 sm:w-64"
+                            className="rounded-xl border border-slate-200 dark:border-[#334155] bg-slate-50 dark:bg-[#111827] pl-8 pr-3 py-1.5 text-xs text-slate-800 dark:text-[#F1F5F9] placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-blue-500 dark:focus:border-blue-400 w-48 sm:w-64"
                         />
                     </div>
                 </div>
@@ -1283,13 +1283,13 @@ export const StockMovementsPage = () => {
                         <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
                     </div>
                 ) : filteredHistory.length === 0 ? (
-                    <div className="p-12 text-center text-xs text-slate-400">
+                    <div className="p-12 text-center text-xs text-slate-500 dark:text-[#94A3B8]">
                         No movement records found for this product in this facility.
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs">
-                            <thead className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                            <thead className="bg-slate-50/80 dark:bg-[#111827] border-b border-slate-200/80 dark:border-[#334155] text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
                                 <tr>
                                     <th className="px-6 py-3.5">Timestamp</th>
                                     <th className="px-6 py-3.5">Type</th>
@@ -1298,43 +1298,43 @@ export const StockMovementsPage = () => {
                                     <th className="px-6 py-3.5">Actor</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-100 dark:divide-[#334155]/60">
                                 {filteredHistory.map((item) => {
                                     const isPositive = ['Purchase', 'AdjustmentIn', 'TransferIn'].includes(item.type);
                                     const parsedSupplierRef = parseSupplierFromRef(item);
                                     const parsedCustomerRef = parseCustomerFromRef(item);
 
                                     return (
-                                        <tr key={item.id} className="hover:bg-slate-50/60 transition">
-                                            <td className="px-6 py-3.5 text-slate-500 font-mono">
+                                        <tr key={item.id} className="hover:bg-slate-50/60 dark:hover:bg-[#273449] transition">
+                                            <td className="px-6 py-3.5 text-slate-500 dark:text-[#94A3B8] font-mono">
                                                 {new Date(item.createdAt).toLocaleString()}
                                             </td>
                                             <td className="px-6 py-3.5">
                                                 <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
                                                     isPositive
-                                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                                        ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
+                                                        : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60'
                                                 }`}>
                                                     {isPositive ? <ArrowDownLeft className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
                                                     {item.type}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-3.5 font-bold font-mono text-slate-900">
+                                            <td className="px-6 py-3.5 font-bold font-mono text-slate-900 dark:text-[#F1F5F9]">
                                                 {isPositive ? `+${item.quantity}` : `-${item.quantity}`}
                                             </td>
-                                            <td className="px-6 py-3.5 text-slate-700">
+                                            <td className="px-6 py-3.5 text-slate-700 dark:text-[#CBD5E1]">
                                                 {parsedSupplierRef ? (
                                                     <div className="flex items-center gap-2">
                                                         <button
                                                             type="button"
                                                             onClick={() => openSupplierModal(parsedSupplierRef.supplierId)}
-                                                            className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-2 py-0.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition"
+                                                            className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/70 dark:bg-emerald-950/40 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition cursor-pointer"
                                                         >
-                                                            <Truck className="h-3 w-3 text-emerald-600" />
+                                                            <Truck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                                                             <span>{parsedSupplierRef.supplierName}</span>
                                                         </button>
                                                         {parsedSupplierRef.invoiceNumber && (
-                                                            <span className="font-mono text-[11px] text-slate-500">
+                                                            <span className="font-mono text-[11px] text-slate-500 dark:text-[#94A3B8]">
                                                                 Ref: {parsedSupplierRef.invoiceNumber}
                                                             </span>
                                                         )}
@@ -1344,25 +1344,27 @@ export const StockMovementsPage = () => {
                                                         <button
                                                             type="button"
                                                             onClick={() => openCustomerModal(parsedCustomerRef.customer)}
-                                                            className="inline-flex items-center gap-1 rounded-lg border border-purple-200 bg-purple-50/70 px-2 py-0.5 text-xs font-semibold text-purple-800 hover:bg-purple-100 transition"
+                                                            className="inline-flex items-center gap-1 rounded-lg border border-purple-200 dark:border-purple-800/60 bg-purple-50/70 dark:bg-purple-950/40 px-2 py-0.5 text-xs font-semibold text-purple-800 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 transition cursor-pointer"
                                                         >
-                                                            <Users className="h-3 w-3 text-purple-600" />
+                                                            <Users className="h-3 w-3 text-purple-600 dark:text-purple-400" />
                                                             <span>{parsedCustomerRef.customer.name}</span>
                                                         </button>
                                                         {parsedCustomerRef.salesOrderNumber && (
-                                                            <span className="font-mono text-[11px] text-slate-500">
+                                                            <span className="font-mono text-[11px] text-slate-500 dark:text-[#94A3B8]">
                                                                 Ref: {parsedCustomerRef.salesOrderNumber}
                                                             </span>
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <span className="text-slate-600">
+                                                    <span className="text-slate-600 dark:text-[#CBD5E1]">
                                                         {item.adjustmentReasonName || item.referenceId || '-'}
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="px-6 py-3.5 text-slate-400 font-mono text-[11px]">
-                                                {item.createdByUserId ? `${item.createdByUserId.substring(0, 8)}...` : 'System'}
+                                            <td className="px-6 py-3.5 text-slate-600 dark:text-[#CBD5E1] text-xs">
+                                                <span className="inline-flex items-center rounded-md bg-slate-100 dark:bg-[#111827] border border-slate-200 dark:border-[#334155] px-2 py-0.5 text-[11px] font-semibold text-slate-700 dark:text-[#CBD5E1]">
+                                                    {item.createdByUserId ? 'Operator' : 'System'}
+                                                </span>
                                             </td>
                                         </tr>
                                     );
@@ -1375,43 +1377,43 @@ export const StockMovementsPage = () => {
 
             {/* SEARCHABLE PRODUCT PICKER MODAL */}
             {isProductPickerOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-                    <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-150">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-[#0B1120]/80 backdrop-blur-xs p-4">
+                    <div className="w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-150">
                         {/* Modal Header */}
-                        <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                        <div className="p-4 border-b border-slate-100 dark:border-[#334155] bg-white dark:bg-[#1E293B] flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/60">
                                     <Package className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-bold text-slate-900">Select Compatible Product</h3>
-                                    <p className="text-[11px] text-slate-500">Showing products permitted for {selectedWarehouse?.name}</p>
+                                    <h3 className="text-sm font-bold text-slate-900 dark:text-[#F1F5F9]">Select Compatible Product</h3>
+                                    <p className="text-[11px] text-slate-500 dark:text-[#94A3B8]">Showing products permitted for {selectedWarehouse?.name}</p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setIsProductPickerOpen(false)}
-                                className="h-8 w-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+                                className="h-8 w-8 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-[#273449] text-slate-400 dark:text-[#94A3B8] hover:text-slate-600 dark:hover:text-[#F1F5F9] cursor-pointer"
                             >
                                 <X className="h-4 w-4" />
                             </button>
                         </div>
 
                         {/* Search & Category Filter Bar */}
-                        <div className="p-4 border-b border-slate-100 space-y-3 bg-slate-50/60">
+                        <div className="p-4 border-b border-slate-100 dark:border-[#334155] space-y-3 bg-slate-50/60 dark:bg-[#111827]">
                             <div className="relative">
-                                <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                <Search className="h-4 w-4 text-slate-400 dark:text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
                                 <input
                                     type="text"
                                     autoFocus
                                     placeholder="Search by product name, SKU, category, or brand..."
                                     value={productSearch}
                                     onChange={(e) => setProductSearch(e.target.value)}
-                                    className="w-full rounded-xl border border-slate-300 bg-white pl-10 pr-10 py-2.5 text-xs text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                                    className="w-full rounded-xl border border-slate-300 dark:border-[#334155] bg-white dark:bg-[#1E293B] pl-10 pr-10 py-2.5 text-xs text-slate-900 dark:text-[#F1F5F9] placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
                                 />
                                 {productSearch && (
                                     <button
                                         onClick={() => setProductSearch('')}
-                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#94A3B8] hover:text-slate-600 dark:hover:text-[#F1F5F9] cursor-pointer"
                                     >
                                         <X className="h-3.5 w-3.5" />
                                     </button>
@@ -1424,10 +1426,10 @@ export const StockMovementsPage = () => {
                                     <button
                                         key={cat}
                                         onClick={() => setProductCategoryFilter(cat)}
-                                        className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+                                        className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                                             productCategoryFilter === cat
                                                 ? 'bg-blue-600 text-white shadow-2xs'
-                                                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                                                : 'bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-[#334155] text-slate-600 dark:text-[#CBD5E1] hover:bg-slate-100 dark:hover:bg-[#273449]'
                                         }`}
                                     >
                                         {cat}
@@ -1437,9 +1439,9 @@ export const StockMovementsPage = () => {
                         </div>
 
                         {/* Product Grid / List */}
-                        <div className="p-4 overflow-y-auto flex-1 space-y-2">
+                        <div className="p-4 overflow-y-auto flex-1 space-y-2 bg-white dark:bg-[#1E293B]">
                             {filteredProducts.length === 0 ? (
-                                <div className="p-12 text-center text-xs text-slate-400">
+                                <div className="p-12 text-center text-xs text-slate-400 dark:text-[#94A3B8]">
                                     No products found matching "{productSearch}".
                                 </div>
                             ) : (
@@ -1459,36 +1461,36 @@ export const StockMovementsPage = () => {
                                             }}
                                             className={`p-3.5 rounded-xl border cursor-pointer transition flex items-center justify-between gap-3 ${
                                                 isSelected
-                                                    ? 'border-blue-600 bg-blue-50/50 shadow-xs ring-1 ring-blue-600'
-                                                    : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50'
+                                                    ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-600/15 dark:border-blue-500 shadow-xs ring-1 ring-blue-600 dark:ring-blue-500'
+                                                    : 'border-slate-200 dark:border-[#334155] bg-white dark:bg-[#111827] hover:border-blue-300 dark:hover:border-blue-400 hover:bg-slate-50 dark:hover:bg-[#273449]'
                                             }`}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className={`flex h-10 w-10 items-center justify-center rounded-xl shrink-0 ${
-                                                    isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
+                                                    isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#CBD5E1] border border-transparent dark:border-[#334155]'
                                                 }`}>
                                                     <Package className="h-5 w-5" />
                                                 </div>
                                                 <div>
-                                                    <h4 className="text-xs font-bold text-slate-900">{p.name}</h4>
+                                                    <h4 className="text-xs font-bold text-slate-900 dark:text-[#F1F5F9]">{p.name}</h4>
                                                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                                        <span className="font-mono text-[11px] text-slate-500 font-semibold">
+                                                        <span className="font-mono text-[11px] text-slate-500 dark:text-[#94A3B8] font-semibold">
                                                             SKU: {p.sku || p.SKU}
                                                         </span>
-                                                        <span className="text-slate-300">•</span>
-                                                        <span className="text-[11px] text-slate-600 font-medium">
+                                                        <span className="text-slate-300 dark:text-slate-600">•</span>
+                                                        <span className="text-[11px] text-slate-600 dark:text-[#CBD5E1] font-medium">
                                                             {p.categoryName || 'General'}
                                                         </span>
                                                         {p.brandName && (
                                                             <>
-                                                                <span className="text-slate-300">•</span>
-                                                                <span className="text-[11px] text-slate-500">
+                                                                <span className="text-slate-300 dark:text-slate-600">•</span>
+                                                                <span className="text-[11px] text-slate-500 dark:text-[#94A3B8]">
                                                                     Brand: {p.brandName}
                                                                 </span>
                                                             </>
                                                         )}
-                                                        <span className="text-slate-300">•</span>
-                                                        <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                                        <span className="text-slate-300 dark:text-slate-600">•</span>
+                                                        <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/60">
                                                             {avgPrice != null ? `Avg: ${formatMoneyK(avgPrice)}` : formatMoneyK(p.sellingPrice)}
                                                         </span>
                                                     </div>
@@ -1497,18 +1499,18 @@ export const StockMovementsPage = () => {
 
                                             <div className="flex items-center gap-4 shrink-0">
                                                 <div className="text-right">
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8] block">
                                                         {avgPrice != null ? 'Avg Price' : 'Selling Price'}
                                                     </span>
-                                                    <span className="text-base font-extrabold text-slate-900 font-mono block text-emerald-700" title={formatCurrency(displayPrice)}>
+                                                    <span className="text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono block" title={formatCurrency(displayPrice)}>
                                                         {formatMoneyK(displayPrice)}
                                                     </span>
-                                                    <span className="text-[10px] text-slate-400 block font-medium">
+                                                    <span className="text-[10px] text-slate-400 dark:text-[#94A3B8] block font-medium">
                                                         {avgPrice != null && supplierCount > 0 ? `${supplierCount} supplier${supplierCount > 1 ? 's' : ''}` : `per ${p.unitOfMeasureName || 'unit'}`}
                                                     </span>
                                                 </div>
                                                 <div className={`h-5 w-5 rounded-full flex items-center justify-center ${
-                                                    isSelected ? 'bg-blue-600 text-white' : 'border border-slate-300'
+                                                    isSelected ? 'bg-blue-600 text-white' : 'border border-slate-300 dark:border-[#334155]'
                                                 }`}>
                                                     {isSelected && <Check className="h-3 w-3" />}
                                                 </div>
@@ -1520,11 +1522,11 @@ export const StockMovementsPage = () => {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="p-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+                        <div className="p-3 border-t border-slate-100 dark:border-[#334155] bg-slate-50 dark:bg-[#111827] flex items-center justify-between text-xs text-slate-500 dark:text-[#94A3B8]">
                             <span>{filteredProducts.length} products listed</span>
                             <button
                                 onClick={() => setIsProductPickerOpen(false)}
-                                className="px-4 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50"
+                                className="px-4 py-1.5 rounded-lg border border-slate-300 dark:border-[#334155] bg-white dark:bg-[#1E293B] text-slate-700 dark:text-[#F1F5F9] font-semibold hover:bg-slate-50 dark:hover:bg-[#273449] cursor-pointer"
                             >
                                 Close
                             </button>
@@ -1535,56 +1537,56 @@ export const StockMovementsPage = () => {
 
             {/* Supplier Info Modal */}
             {supplierModalOpen && selectedSupplierForModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-                    <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-                        <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-[#0B1120]/80 backdrop-blur-xs p-4">
+                    <div className="w-full max-w-md rounded-2xl border border-slate-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+                        <div className="flex items-start justify-between border-b border-slate-100 dark:border-[#334155] pb-4">
                             <div className="flex items-center gap-3">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/60">
                                     <Truck className="h-6 w-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-base font-bold text-slate-900">
+                                    <h3 className="text-base font-bold text-slate-900 dark:text-[#F1F5F9]">
                                         {selectedSupplierForModal.name}
                                     </h3>
-                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200 mt-1">
+                                    <span className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 mt-1">
                                         {selectedSupplierForModal.isActive ? 'Active Supplier' : 'Inactive'}
                                     </span>
                                 </div>
                             </div>
-                            <button onClick={() => setSupplierModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                            <button onClick={() => setSupplierModalOpen(false)} className="text-slate-400 dark:text-[#94A3B8] hover:text-slate-600 dark:hover:text-[#F1F5F9] cursor-pointer">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
-                        <div className="py-4 space-y-3 text-xs text-slate-600">
-                            <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-                                <span className="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Supplier Code</span>
-                                <span className="font-mono text-slate-800 text-[11px]">{selectedSupplierForModal.code || selectedSupplierForModal.id}</span>
+                        <div className="py-4 space-y-3 text-xs text-slate-600 dark:text-[#CBD5E1]">
+                            <div className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-[#111827] border border-transparent dark:border-[#334155] p-3">
+                                <span className="font-semibold text-slate-500 dark:text-[#94A3B8] uppercase tracking-wider text-[10px]">Supplier Code</span>
+                                <span className="font-mono text-slate-800 dark:text-[#F1F5F9] text-[11px]">{selectedSupplierForModal.code || selectedSupplierForModal.id}</span>
                             </div>
-                            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition">
-                                <Mail className="h-4 w-4 text-slate-400 shrink-0" />
+                            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-[#111827] transition">
+                                <Mail className="h-4 w-4 text-slate-400 dark:text-[#94A3B8] shrink-0" />
                                 <div className="flex-1">
-                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Email</p>
-                                    <span className="text-slate-800 font-medium">{selectedSupplierForModal.email || 'Not provided'}</span>
+                                    <p className="text-[10px] uppercase font-semibold text-slate-400 dark:text-[#94A3B8]">Email</p>
+                                    <span className="text-slate-800 dark:text-[#F1F5F9] font-medium">{selectedSupplierForModal.email || 'Not provided'}</span>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition">
-                                <Phone className="h-4 w-4 text-slate-400 shrink-0" />
+                            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-[#111827] transition">
+                                <Phone className="h-4 w-4 text-slate-400 dark:text-[#94A3B8] shrink-0" />
                                 <div className="flex-1">
-                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Phone</p>
-                                    <span className="text-slate-800 font-medium">{selectedSupplierForModal.phone || 'Not provided'}</span>
+                                    <p className="text-[10px] uppercase font-semibold text-slate-400 dark:text-[#94A3B8]">Phone</p>
+                                    <span className="text-slate-800 dark:text-[#F1F5F9] font-medium">{selectedSupplierForModal.phone || 'Not provided'}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+                        <div className="flex items-center justify-between border-t border-slate-100 dark:border-[#334155] pt-4">
                             <button
                                 type="button"
                                 onClick={() => {
                                     setSupplierModalOpen(false);
                                     navigate(`/suppliers/${selectedSupplierForModal.id}`);
                                 }}
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800"
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer"
                             >
                                 <ExternalLink className="h-3.5 w-3.5" />
                                 <span>View Full Profile</span>
@@ -1592,7 +1594,7 @@ export const StockMovementsPage = () => {
                             <button
                                 type="button"
                                 onClick={() => setSupplierModalOpen(false)}
-                                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                className="rounded-lg border border-slate-300 dark:border-[#334155] bg-white dark:bg-[#111827] px-4 py-2 text-xs font-semibold text-slate-700 dark:text-[#F1F5F9] hover:bg-slate-50 dark:hover:bg-[#273449] cursor-pointer"
                             >
                                 Close
                             </button>
@@ -1603,54 +1605,54 @@ export const StockMovementsPage = () => {
 
             {/* Customer Info Modal */}
             {customerModalOpen && selectedCustomerForModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-                    <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-                        <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-[#0B1120]/80 backdrop-blur-xs p-4">
+                    <div className="w-full max-w-md rounded-2xl border border-slate-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+                        <div className="flex items-start justify-between border-b border-slate-100 dark:border-[#334155] pb-4">
                             <div className="flex items-center gap-3">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-600 border border-purple-100">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-800/60">
                                     <Users className="h-6 w-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-base font-bold text-slate-900">{selectedCustomerForModal.name}</h3>
-                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200 mt-1">
+                                    <h3 className="text-base font-bold text-slate-900 dark:text-[#F1F5F9]">{selectedCustomerForModal.name}</h3>
+                                    <span className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 mt-1">
                                         {selectedCustomerForModal.isActive ? 'Active Client' : 'Inactive'}
                                     </span>
                                 </div>
                             </div>
-                            <button onClick={() => setCustomerModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                            <button onClick={() => setCustomerModalOpen(false)} className="text-slate-400 dark:text-[#94A3B8] hover:text-slate-600 dark:hover:text-[#F1F5F9] cursor-pointer">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
-                        <div className="py-4 space-y-3 text-xs text-slate-600">
-                            <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-                                <span className="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Customer ID</span>
-                                <span className="font-mono text-slate-800 text-[11px]">{selectedCustomerForModal.id}</span>
+                        <div className="py-4 space-y-3 text-xs text-slate-600 dark:text-[#CBD5E1]">
+                            <div className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-[#111827] border border-transparent dark:border-[#334155] p-3">
+                                <span className="font-semibold text-slate-500 dark:text-[#94A3B8] uppercase tracking-wider text-[10px]">Customer ID</span>
+                                <span className="font-mono text-slate-800 dark:text-[#F1F5F9] text-[11px]">{selectedCustomerForModal.id}</span>
                             </div>
-                            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition">
-                                <Mail className="h-4 w-4 text-slate-400 shrink-0" />
+                            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-[#111827] transition">
+                                <Mail className="h-4 w-4 text-slate-400 dark:text-[#94A3B8] shrink-0" />
                                 <div className="flex-1">
-                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Email</p>
-                                    <span className="text-slate-800 font-medium">{selectedCustomerForModal.email || 'Not provided'}</span>
+                                    <p className="text-[10px] uppercase font-semibold text-slate-400 dark:text-[#94A3B8]">Email</p>
+                                    <span className="text-slate-800 dark:text-[#F1F5F9] font-medium">{selectedCustomerForModal.email || 'Not provided'}</span>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition">
-                                <Phone className="h-4 w-4 text-slate-400 shrink-0" />
+                            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-[#111827] transition">
+                                <Phone className="h-4 w-4 text-slate-400 dark:text-[#94A3B8] shrink-0" />
                                 <div className="flex-1">
-                                    <p className="text-[10px] uppercase font-semibold text-slate-400">Phone</p>
-                                    <span className="text-slate-800 font-medium">{selectedCustomerForModal.phone || 'Not provided'}</span>
+                                    <p className="text-[10px] uppercase font-semibold text-slate-400 dark:text-[#94A3B8]">Phone</p>
+                                    <span className="text-slate-800 dark:text-[#F1F5F9] font-medium">{selectedCustomerForModal.phone || 'Not provided'}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+                        <div className="flex items-center justify-between border-t border-slate-100 dark:border-[#334155] pt-4">
                             <button
                                 type="button"
                                 onClick={() => {
                                     setCustomerModalOpen(false);
                                     navigate('/customers');
                                 }}
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-600 hover:text-purple-800"
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 cursor-pointer"
                             >
                                 <ExternalLink className="h-3.5 w-3.5" />
                                 <span>View Client Directory</span>
@@ -1658,7 +1660,7 @@ export const StockMovementsPage = () => {
                             <button
                                 type="button"
                                 onClick={() => setCustomerModalOpen(false)}
-                                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                className="rounded-lg border border-slate-300 dark:border-[#334155] bg-white dark:bg-[#111827] px-4 py-2 text-xs font-semibold text-slate-700 dark:text-[#F1F5F9] hover:bg-slate-50 dark:hover:bg-[#273449] cursor-pointer"
                             >
                                 Close
                             </button>

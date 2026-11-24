@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using InventoryManagementSystem.Business.AuditLogs.Services;
 using InventoryManagementSystem.Business.SalesOrders.DTOs;
 using InventoryManagementSystem.DataAccess.Entities;
 using InventoryManagementSystem.DataAccess.Enums;
@@ -17,15 +18,18 @@ public class SalesOrderService : ISalesOrderService
     private readonly InventoryDbContext _context;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly SalesOrderNumberGenerator _numberGenerator;
+    private readonly IAuditLogService? _auditLogService;
 
     public SalesOrderService(
         InventoryDbContext context,
         IHttpContextAccessor httpContextAccessor,
-        SalesOrderNumberGenerator numberGenerator)
+        SalesOrderNumberGenerator numberGenerator,
+        IAuditLogService? auditLogService = null)
     {
         _context = context;
         _httpContextAccessor = httpContextAccessor;
         _numberGenerator = numberGenerator;
+        _auditLogService = auditLogService;
     }
 
     private string GetCurrentUserId()
@@ -258,6 +262,16 @@ public class SalesOrderService : ISalesOrderService
         _context.SalesOrders.Add(salesOrder);
         await _context.SaveChangesAsync();
 
+        if (_auditLogService != null)
+        {
+            await _auditLogService.LogAsync(
+                action: "CreateSalesOrder",
+                entityName: "SalesOrder",
+                entityId: salesOrder.Id.ToString(),
+                warehouseId: salesOrder.WarehouseId,
+                details: new { salesOrder.SalesOrderNumber, LineCount = salesOrder.SalesOrderLines.Count, salesOrder.CustomerId });
+        }
+
         var created = await GetByIdAsync(salesOrder.Id);
         return new SalesOrderOperationResult<SalesOrderResponse>
         {
@@ -390,6 +404,16 @@ public class SalesOrderService : ISalesOrderService
         so.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
+        if (_auditLogService != null)
+        {
+            await _auditLogService.LogAsync(
+                action: "UpdateSalesOrder",
+                entityName: "SalesOrder",
+                entityId: so.Id.ToString(),
+                warehouseId: so.WarehouseId,
+                details: new { so.SalesOrderNumber, LineCount = request.Lines?.Count ?? 0 });
+        }
+
         var updatedSo = await GetByIdAsync(so.Id);
         return new SalesOrderOperationResult<SalesOrderResponse>
         {
@@ -435,6 +459,16 @@ public class SalesOrderService : ISalesOrderService
         so.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
+
+        if (_auditLogService != null)
+        {
+            await _auditLogService.LogAsync(
+                action: "ConfirmSalesOrder",
+                entityName: "SalesOrder",
+                entityId: so.Id.ToString(),
+                warehouseId: so.WarehouseId,
+                details: new { so.SalesOrderNumber, LineCount = so.SalesOrderLines.Count });
+        }
 
         var updatedSo = await GetByIdAsync(so.Id);
         return new SalesOrderOperationResult<SalesOrderResponse>
@@ -591,6 +625,16 @@ public class SalesOrderService : ISalesOrderService
             {
                 await transaction.CommitAsync();
             }
+
+            if (_auditLogService != null)
+            {
+                await _auditLogService.LogAsync(
+                    action: "FulfillSalesOrder",
+                    entityName: "SalesOrder",
+                    entityId: so.Id.ToString(),
+                    warehouseId: so.WarehouseId,
+                    details: new { so.SalesOrderNumber, Fulfillments = request.Items.Count, Status = so.Status });
+            }
         }
         catch (Exception ex)
         {
@@ -658,6 +702,16 @@ public class SalesOrderService : ISalesOrderService
         }
 
         await _context.SaveChangesAsync();
+
+        if (_auditLogService != null)
+        {
+            await _auditLogService.LogAsync(
+                action: "CancelSalesOrder",
+                entityName: "SalesOrder",
+                entityId: so.Id.ToString(),
+                warehouseId: so.WarehouseId,
+                details: new { so.SalesOrderNumber, Reason = reason });
+        }
 
         var updatedSo = await GetByIdAsync(so.Id);
         return new SalesOrderOperationResult<SalesOrderResponse>

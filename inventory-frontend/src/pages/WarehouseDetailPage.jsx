@@ -942,8 +942,10 @@ export const WarehouseDetailPage = () => {
                                                             <span className="text-slate-400">—</span>
                                                         )}
                                                     </td>
-                                                    <td className="px-4 py-3 text-slate-500 font-mono text-[10px]">
-                                                        {sm.createdByUserId ? sm.createdByUserId.substring(0, 8) + '...' : 'System'}
+                                                    <td className="px-4 py-3 text-slate-600 text-xs">
+                                                        <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                                                            {sm.createdByUserId ? 'Operator' : 'System'}
+                                                        </span>
                                                     </td>
                                                 </tr>
                                             );
