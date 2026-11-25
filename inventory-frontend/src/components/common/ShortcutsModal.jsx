@@ -18,6 +18,7 @@ export const ShortcutsModal = ({ isOpen, onClose }) => {
             items: [
                 { keys: ['G', 'C'], label: 'Jump to Stock Counting & Reconciliation' },
                 { keys: ['G', 'R'], label: 'Jump to Replenishment & Reorder Points' },
+                { keys: ['G', 'F'], label: 'Jump to Demand Forecasting' },
                 { keys: ['G', 'A'], label: 'Jump to Audit Trail & Compliance Log' },
                 { keys: ['G', 'W'], label: 'Jump to Warehouses & Facilities' },
                 { keys: ['G', 'P'], label: 'Jump to Products & Catalog' },

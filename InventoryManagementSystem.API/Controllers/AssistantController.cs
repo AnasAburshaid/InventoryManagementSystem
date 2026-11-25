@@ -139,6 +139,8 @@ public class AssistantController : ControllerBase
         {
             return Ok(new List<string>
             {
+                "Which products will likely run out of stock in the next 30 days?",
+                "Which products have increasing demand trends?",
                 "Which products are currently below their reorder points?",
                 "Which warehouse has the highest total inventory value?",
                 "Show me the latest stock movements across all facilities.",
@@ -150,6 +152,7 @@ public class AssistantController : ControllerBase
 
         return Ok(new List<string>
         {
+            "Which products in my facility face stockout risk in 30 days?",
             "Which products in my assigned facility need replenishment?",
             "Show recent stock movements for my warehouse.",
             "What is the current stock of our key products?",

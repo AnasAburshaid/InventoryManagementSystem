@@ -8,6 +8,7 @@ using InventoryManagementSystem.Business.Authentication.Services;
 using InventoryManagementSystem.Business.Brands.Services;
 using InventoryManagementSystem.Business.Categories.Services;
 using InventoryManagementSystem.Business.Customers.Services;
+using InventoryManagementSystem.Business.Forecasting.Services;
 using InventoryManagementSystem.Business.Products.Services;
 using InventoryManagementSystem.Business.PurchaseOrders.Services;
 using InventoryManagementSystem.Business.Replenishment.Services;
@@ -141,8 +142,10 @@ builder.Services.AddScoped<IAssistantTool, GetPurchaseOrdersTool>();
 builder.Services.AddScoped<IAssistantTool, GetSalesOrdersTool>();
 builder.Services.AddScoped<IAssistantTool, GetStockCountsTool>();
 builder.Services.AddScoped<IAssistantTool, GetAuditLogsTool>();
+builder.Services.AddScoped<IAssistantTool, GetDemandForecastsTool>();
 builder.Services.AddScoped<IAssistantToolRegistry, AssistantToolRegistry>();
 builder.Services.AddScoped<IAssistantService, AssistantService>();
+builder.Services.AddScoped<IForecastingService, ForecastingService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthorizationHandler, WarehouseRoleHandler>();
 

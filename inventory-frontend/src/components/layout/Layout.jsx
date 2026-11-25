@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Menu } from 'lucide-react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import CommandPalette from '../common/CommandPalette';
@@ -8,6 +9,7 @@ import ShortcutsModal from '../common/ShortcutsModal';
 export const Layout = ({ children }) => {
     const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
     const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false);
+    const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
     const navigate = useNavigate();
 
     // Global keyboard shortcut listeners
@@ -35,6 +37,9 @@ export const Layout = ({ children }) => {
                 } else if (shortcutsModalOpen) {
                     e.preventDefault();
                     setShortcutsModalOpen(false);
+                } else if (mobileNavigationOpen) {
+                    e.preventDefault();
+                    setMobileNavigationOpen(false);
                 }
                 return;
             }
@@ -68,6 +73,10 @@ export const Layout = ({ children }) => {
                     case 'r':
                         e.preventDefault();
                         navigate('/replenishment');
+                        break;
+                    case 'f':
+                        e.preventDefault();
+                        navigate('/forecasting');
                         break;
                     case 'a':
                         e.preventDefault();
@@ -105,23 +114,43 @@ export const Layout = ({ children }) => {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [commandPaletteOpen, shortcutsModalOpen, navigate]);
+    }, [commandPaletteOpen, shortcutsModalOpen, mobileNavigationOpen, navigate]);
 
     return (
         <div className="min-h-screen bg-slate-50/70 dark:bg-[#0B1120] text-slate-800 dark:text-[#F1F5F9] flex selection:bg-blue-600 selection:text-white transition-colors duration-200 relative overflow-x-hidden">
             {/* Sidebar */}
-            <Sidebar
-                onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-                onOpenShortcuts={() => setShortcutsModalOpen(true)}
-            />
+            {mobileNavigationOpen && <button type="button" tabIndex={-1} aria-label="Dismiss navigation"
+                className="fixed inset-0 z-20 bg-slate-950/60 lg:hidden" onClick={() => setMobileNavigationOpen(false)} />}
+            <Sidebar mobileOpen={mobileNavigationOpen}
+                onMobileClose={() => setMobileNavigationOpen(false)}
+                onOpenCommandPalette={() => {
+                    setMobileNavigationOpen(false);
+                    setCommandPaletteOpen(true);
+                }}
+                onOpenShortcuts={() => {
+                    setMobileNavigationOpen(false);
+                    setShortcutsModalOpen(true);
+                }} />
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col pl-68 transition-all duration-300 min-w-0">
-                <Navbar
-                    onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-                    onOpenShortcuts={() => setShortcutsModalOpen(true)}
-                />
-                <main className="flex-1 p-8 max-w-7xl w-full mx-auto min-w-0">
+            <div className="flex-1 flex flex-col lg:pl-68 min-w-0">
+                <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-2 dark:border-slate-700 dark:bg-slate-900 lg:hidden">
+                    <button type="button" aria-label="Open navigation" aria-controls="application-sidebar" aria-expanded={mobileNavigationOpen}
+                        onClick={() => setMobileNavigationOpen(open => !open)}
+                        className="grid size-10 shrink-0 place-items-center rounded-lg border border-slate-200 dark:border-slate-700">
+                        <Menu size={20} aria-hidden="true" />
+                    </button>
+                    <span className="text-sm font-semibold">Apex Inventory</span>
+                    <button type="button" onClick={() => setCommandPaletteOpen(true)}
+                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-700">Search</button>
+                </div>
+                <div className="sticky top-0 z-20 hidden lg:block">
+                    <Navbar
+                        onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+                        onOpenShortcuts={() => setShortcutsModalOpen(true)}
+                    />
+                </div>
+                <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto min-w-0">
                     {children}
                 </main>
             </div>

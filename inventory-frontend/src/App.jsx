@@ -20,6 +20,7 @@ import StockCountsPage from './pages/StockCountsPage';
 import ReplenishmentPage from './pages/ReplenishmentPage';
 import AuditLogsPage from './pages/AuditLogsPage';
 import AssistantPage from './pages/AssistantPage';
+import DemandForecastingPage from './pages/DemandForecastingPage';
 
 function App() {
     return (
@@ -183,6 +184,11 @@ function App() {
                     />
 
                     {/* Catch all fallback */}
+                    <Route path="/forecasting" element={
+                        <ProtectedRoute>
+                            <Layout><DemandForecastingPage /></Layout>
+                        </ProtectedRoute>
+                    } />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </BrowserRouter>

@@ -6,6 +6,7 @@ import {
     X,
     ArrowRight,
     LayoutDashboard,
+    ChartNoAxesCombined,
     ClipboardCheck,
     TrendingDown,
     History,
@@ -53,6 +54,15 @@ export const CommandPalette = ({ isOpen, onClose, onOpenShortcuts }) => {
             color: 'text-indigo-600 bg-indigo-50',
             shortcut: 'G A',
             action: () => navigate('/assistant')
+        },
+        {
+            category: 'Navigation',
+            name: 'Demand Forecasting',
+            description: 'Review projected demand, stockout risk, and forecast confidence',
+            icon: ChartNoAxesCombined,
+            color: 'text-indigo-600 bg-indigo-50',
+            shortcut: 'G F',
+            action: () => navigate('/forecasting')
         },
         {
             category: 'Navigation',

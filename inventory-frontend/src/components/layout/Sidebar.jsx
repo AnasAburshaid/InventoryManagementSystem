@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
     LayoutDashboard,
+    ChartNoAxesCombined,
     Warehouse,
     Package,
     ArrowLeftRight,
@@ -21,12 +22,13 @@ import {
     SlidersHorizontal,
     Boxes,
     Sun,
-    Moon
+    Moon,
+    X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
-export const Sidebar = ({ onOpenCommandPalette, onOpenShortcuts }) => {
+export const Sidebar = ({ mobileOpen, onMobileClose, onOpenCommandPalette, onOpenShortcuts }) => {
     const { user, logout } = useAuth();
     const { isDark, toggleTheme } = useTheme();
 
@@ -51,6 +53,13 @@ export const Sidebar = ({ onOpenCommandPalette, onOpenShortcuts }) => {
                     badge: 'AI',
                     badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
                     shortcut: 'G A'
+                },
+                {
+                    name: 'Demand Forecasting',
+                    subtext: 'Demand and stockout projections',
+                    href: '/forecasting',
+                    icon: ChartNoAxesCombined,
+                    shortcut: 'G F'
                 }
             ]
         },
@@ -159,7 +168,7 @@ export const Sidebar = ({ onOpenCommandPalette, onOpenShortcuts }) => {
     ];
 
     return (
-        <aside className="fixed inset-y-0 left-0 z-30 flex w-68 flex-col bg-[#111827] text-[#F1F5F9] shadow-xl border-r border-[#334155] transition-all duration-300">
+        <aside id="application-sidebar" className={`fixed inset-y-0 left-0 z-30 ${mobileOpen ? 'flex' : 'hidden'} lg:flex w-68 max-w-[85vw] flex-col bg-[#111827] text-[#F1F5F9] shadow-xl border-r border-[#334155]`}>
             {/* Header Brand */}
             <div className="flex h-16 items-center justify-between border-b border-[#334155] px-5 bg-[#111827]">
                 <div className="flex items-center gap-3">
@@ -174,6 +183,9 @@ export const Sidebar = ({ onOpenCommandPalette, onOpenShortcuts }) => {
                         </span>
                     </div>
                 </div>
+                <button type="button" aria-label="Close navigation" onClick={onMobileClose} className="rounded-lg p-2 hover:bg-[#273449] lg:hidden">
+                    <X className="h-5 w-5" aria-hidden="true" />
+                </button>
             </div>
 
             {/* Quick Find / Command Palette Trigger */}
@@ -203,6 +215,7 @@ export const Sidebar = ({ onOpenCommandPalette, onOpenShortcuts }) => {
                             <NavLink
                                 key={item.name}
                                 to={item.href}
+                                onClick={onMobileClose}
                                 end={item.href === '/'}
                                 className={({ isActive }) =>
                                     `group relative flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-150 ${
